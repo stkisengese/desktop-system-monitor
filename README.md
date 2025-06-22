@@ -133,7 +133,7 @@ cd desktop-system-monitor
 make
 
 # Run the application
-./system-monitor
+./monitor
 ```
 
 ### File Structure
