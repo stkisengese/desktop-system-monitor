@@ -9,6 +9,8 @@
 #include <dirent.h>
 #include <vector>
 #include <iostream>
+#include <cstring>
+#include <string>
 #include <cmath>
 // lib to read from file
 #include <fstream>
