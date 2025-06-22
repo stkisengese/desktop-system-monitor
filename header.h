@@ -98,12 +98,45 @@ struct RX
     int compressed;
 };
 
-// student TODO : system stats
+struct SystemInfo
+{
+    string os_name;
+    string hostname;
+    string username;
+    string cpu_model;
+    int total_processes;
+    int running_processes;
+    int sleeping_processes;
+    int zombie_processes;
+    int stopped_processes;
+};
+
+struct MemoryInfo
+{
+    unsigned long total_ram;
+    unsigned long available_ram;
+    unsigned long used_ram;
+    unsigned long total_swap;
+    unsigned long used_swap;
+    unsigned long total_disk;
+    unsigned long used_disk;
+};
+
+struct ThermalInfo
+{
+    float temperature;
+    bool available;
+};
+
+struct FanInfo
+{
+    int speed;
+    int level;
+    bool active;
+    bool available;
+};
+
 string CPUinfo();
 const char *getOsName();
-
-// student TODO : memory and processes
-
-// student TODO : network
 
 #endif
