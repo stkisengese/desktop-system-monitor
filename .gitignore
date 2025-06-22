@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+#Dependencies
+imgui.ini
+
+#compiled file
+*monitor
