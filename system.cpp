@@ -49,3 +49,27 @@ const char *getOsName()
     return "Other";
 #endif
 }
+
+// Function to read hostname from /proc/sys/kernel/hostname
+string getHostname() {
+    ifstream file("/proc/sys/kernel/hostname");
+    string hostname;
+    
+     if (file.is_open()) {
+        getline(file, hostname);
+        file.close();
+        
+        // Remove any trailing whitespace/newlines
+        hostname.erase(hostname.find_last_not_of(" \t\n\r\f\v") + 1);
+    } else {
+        // Fallback to gethostname if /proc file is not available
+        char buffer[256];
+        if (gethostname(buffer, sizeof(buffer)) == 0) {
+            hostname = string(buffer);
+        } else {
+            hostname = "unknown";
+        }
+    }
+    
+    return hostname;
+}
