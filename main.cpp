@@ -68,7 +68,12 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
     ImGui::Text("CPU Usage: %.1f%%", cpuUsage);
 
     ImGui::Spacing();
-   
+    ImGui::Text("Process Counts");
+    ImGui::Separator();
+    ImGui::Text("Total: %d Running: %d Sleeping: %d Zombie: %d Stopped: %d", sysInfo.total_processes,
+                sysInfo.running_processes, sysInfo.sleeping_processes, sysInfo.zombie_processes, sysInfo.stopped_processes);
+    ImGui::Separator();
+
     ImGui::End();
 }
 
