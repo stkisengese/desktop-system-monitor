@@ -12,9 +12,11 @@
 #include <cstring>
 #include <string>
 #include <cmath>
+#include <sstream>
+#include <thread>
+#include <chrono>
 #include <pwd.h> // For getpwuid
-// lib to read from file
-#include <fstream>
+#include <fstream> // lib to read from file
 // for the name of the computer and the logged in user
 #include <unistd.h>
 #include <limits.h>
@@ -27,10 +29,8 @@
 #include <sys/types.h>
 #include <sys/sysinfo.h>
 #include <sys/statvfs.h>
-// for time and date
-#include <ctime>
-// ifconfig ip addresses
-#include <sys/types.h>
+#include <ctime> // for time and date
+#include <sys/types.h> // ifconfig ip addresses
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -142,5 +142,9 @@ string CPUinfo();
 const char *getOsName();
 string getHostname();
 string getUsername();
+SystemInfo getSystemInfo();
+map<string, int> getProcessCounts();
+CPUStats getCurrentCPUStats();
+float calculateCPUUsage(CPUStats prev, CPUStats curr);
 
 #endif
