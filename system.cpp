@@ -128,3 +128,32 @@ CPUStats getCurrentCPUStats()
     file.close();
     return stats;
 }
+
+// Calculate CPU usage percentage between two stat readings
+float calculateCPUUsage(CPUStats prev, CPUStats curr)
+{
+    // Calculate total time for both readings
+    long long int prevTotal = prev.user + prev.nice + prev.system + prev.idle +
+                              prev.iowait + prev.irq + prev.softirq + prev.steal;
+    long long int currTotal = curr.user + curr.nice + curr.system + curr.idle +
+                              curr.iowait + curr.irq + curr.softirq + curr.steal;
+
+    // Calculate idle time for both readings
+    long long int prevIdle = prev.idle + prev.iowait;
+    long long int currIdle = curr.idle + curr.iowait;
+
+    // Calculate differences
+    long long int totalDiff = currTotal - prevTotal;
+    long long int idleDiff = currIdle - prevIdle;
+
+    // Avoid division by zero
+    if (totalDiff == 0) return 0.0f;
+
+    // Calculate CPU usage percentage
+    float usage = ((float)(totalDiff - idleDiff) / totalDiff) * 100.0f;
+
+    // Ensure the result is within valid range
+    if (usage < 0.0f) usage = 0.0f;
+    if (usage > 100.0f) usage = 100.0f;
+    return usage;
+}
