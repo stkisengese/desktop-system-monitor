@@ -51,26 +51,33 @@ const char *getOsName()
 }
 
 // Function to read hostname from /proc/sys/kernel/hostname
-string getHostname() {
+string getHostname()
+{
     ifstream file("/proc/sys/kernel/hostname");
     string hostname;
-    
-     if (file.is_open()) {
+
+    if (file.is_open())
+    {
         getline(file, hostname);
         file.close();
-        
+
         // Remove any trailing whitespace/newlines
         hostname.erase(hostname.find_last_not_of(" \t\n\r\f\v") + 1);
-    } else {
+    }
+    else
+    {
         // Fallback to gethostname if /proc file is not available
         char buffer[256];
-        if (gethostname(buffer, sizeof(buffer)) == 0) {
+        if (gethostname(buffer, sizeof(buffer)) == 0)
+        {
             hostname = string(buffer);
-        } else {
+        }
+        else
+        {
             hostname = "unknown";
         }
     }
-    
+
     return hostname;
 }
 
@@ -78,16 +85,46 @@ string getHostname() {
 string getUsername()
 {
     // Try environment variable first
-    const char* user = getenv("USER");
-    if (user != nullptr) {
+    const char *user = getenv("USER");
+    if (user != nullptr)
+    {
         return string(user);
     }
-    
+
     // Fallback to getpwuid
-    struct passwd* pw = getpwuid(getuid());
-    if (pw != nullptr && pw->pw_name != nullptr) {
+    struct passwd *pw = getpwuid(getuid());
+    if (pw != nullptr && pw->pw_name != nullptr)
+    {
         return string(pw->pw_name);
     }
-    
+
     return "unknown";
+}
+
+// Parse /proc/stat for CPU statistics
+CPUStats getCurrentCPUStats()
+{
+    CPUStats stats = {0};
+    std::ifstream file("/proc/stat");
+    std::string line;
+
+    while (std::getline(file, line))
+    {
+        if (line.find("cpu ") != std::string::npos)
+        {
+            std::istringstream iss(line);
+            std::string cpu_label;
+
+            iss >> cpu_label >>
+                stats.user >> stats.nice >> stats.system >> stats.idle >>
+                stats.iowait >> stats.irq >> stats.softirq >> stats.steal >>
+                stats.guest >> stats.guestNice;
+
+            file.close();
+            return stats;
+        }
+    }
+
+    file.close();
+    return stats;
 }
