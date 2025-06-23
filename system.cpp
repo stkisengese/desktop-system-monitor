@@ -248,3 +248,25 @@ map<string, int> getProcessCounts()
     
     return counts;
 }
+
+// Aggregate all system information
+SystemInfo getSystemInfo()
+{
+    SystemInfo info;
+    
+    // Get basic system information
+    info.os_name = getOsName();
+    info.hostname = getHostname();
+    info.username = getUsername();
+    info.cpu_model = CPUinfo();
+    
+    // Get process counts
+    map<string, int> processCounts = getProcessCounts();
+    info.total_processes = processCounts["total"];
+    info.running_processes = processCounts["running"];
+    info.sleeping_processes = processCounts["sleeping"];
+    info.zombie_processes = processCounts["zombie"];
+    info.stopped_processes = processCounts["stopped"];
+    
+    return info;
+}
