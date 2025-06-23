@@ -157,3 +157,94 @@ float calculateCPUUsage(CPUStats prev, CPUStats curr)
     if (usage > 100.0f) usage = 100.0f;
     return usage;
 }
+
+// Parse /proc/stat for process counts
+map<string, int> getProcessCounts()
+{
+    map<string, int> counts;
+    ifstream file("/proc/stat");
+    string line;
+    
+    // Initialize counts
+    counts["total"] = 0;
+    counts["running"] = 0;
+    counts["blocked"] = 0;
+    counts["sleeping"] = 0;
+    counts["zombie"] = 0;
+    counts["stopped"] = 0;
+    
+    if (file.is_open()) {
+        while (getline(file, line)) {
+            if (line.substr(0, 9) == "processes") {
+                istringstream iss(line);
+                string label;
+                int total;
+                iss >> label >> total;
+                counts["total"] = total;
+            } else if (line.substr(0, 13) == "procs_running") {
+                istringstream iss(line);
+                string label;
+                int running;
+                iss >> label >> running;
+                counts["running"] = running;
+            } else if (line.substr(0, 13) == "procs_blocked") {
+                istringstream iss(line);
+                string label;
+                int blocked;
+                iss >> label >> blocked;
+                counts["blocked"] = blocked;
+            }
+        }
+        file.close();
+    } else {
+        cerr << "Error: Unable to open /proc/stat" << endl;
+        return counts;
+    }
+    
+    // Get more detailed process states by reading /proc/*/stat files
+    DIR* proc_dir = opendir("/proc");
+    if (proc_dir != nullptr) {
+        struct dirent* entry;
+        while ((entry = readdir(proc_dir)) != nullptr) {
+            // Check if directory name is a number (PID)
+            string dirname = entry->d_name;
+            if (dirname.find_first_not_of("0123456789") == string::npos && !dirname.empty()) {
+                string stat_path = "/proc/" + dirname + "/stat";
+                ifstream stat_file(stat_path);
+                
+                if (stat_file.is_open()) {
+                    string stat_line;
+                    if (getline(stat_file, stat_line)) {
+                        istringstream iss(stat_line);
+                        string token;
+                        
+                        // Skip PID and command name (can contain spaces and parentheses)
+                        iss >> token; // PID
+                        iss >> token; // Command name in parentheses
+                        
+                        char state;
+                        iss >> state; // Process state
+                        
+                        switch (state) {
+                            case 'S': // Sleeping
+                            case 'D': // Uninterruptible sleep
+                                counts["sleeping"]++;
+                                break;
+                            case 'Z': // Zombie
+                                counts["zombie"]++;
+                                break;
+                            case 'T': // Stopped
+                            case 't': // Tracing stop
+                                counts["stopped"]++;
+                                break;
+                        }
+                    }
+                    stat_file.close();
+                }
+            }
+        }
+        closedir(proc_dir);
+    }
+    
+    return counts;
+}
