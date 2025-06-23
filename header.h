@@ -136,7 +136,9 @@ struct FanInfo
     bool available;
 };
 
+// system information
 string CPUinfo();
 const char *getOsName();
+string getHostname();
 
 #endif
