@@ -54,6 +54,29 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
     static CPUStats prevCPUStats;
     static CPUStats currCPUStats;
     static float cpuUsage = 0.0f;
+    static bool initialized = false;
+
+    // Initialize or update data periodically
+    static float lastUpdate = ImGui::GetTime();
+    if (!initialized || (ImGui::GetTime() - lastUpdate) > 1.0f)
+    {
+        sysInfo = getSystemInfo();
+        procCounts = getProcessCounts();
+
+        if (initialized)
+        {
+            prevCPUStats = currCPUStats;
+        }
+        currCPUStats = getCurrentCPUStats();
+
+        if (initialized)
+        {
+            cpuUsage = calculateCPUUsage(prevCPUStats, currCPUStats);
+        }
+
+        lastUpdate = ImGui::GetTime();
+        initialized = true;
+    }
 
     // Display system information
     ImGui::Text("System Information");
