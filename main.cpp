@@ -58,7 +58,7 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
 
     // Initialize or update data periodically
     static float lastUpdate = ImGui::GetTime();
-    if (!initialized || (ImGui::GetTime() - lastUpdate) > 1.0f)
+    if (!initialized || (ImGui::GetTime() - lastUpdate) > 2.0f)
     {
         sysInfo = getSystemInfo();
         procCounts = getProcessCounts();
