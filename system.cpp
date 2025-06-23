@@ -73,3 +73,21 @@ string getHostname() {
     
     return hostname;
 }
+
+// Get username using environment variable or getpwuid
+string getUsername()
+{
+    // Try environment variable first
+    const char* user = getenv("USER");
+    if (user != nullptr) {
+        return string(user);
+    }
+    
+    // Fallback to getpwuid
+    struct passwd* pw = getpwuid(getuid());
+    if (pw != nullptr && pw->pw_name != nullptr) {
+        return string(pw->pw_name);
+    }
+    
+    return "unknown";
+}
