@@ -12,6 +12,7 @@
 #include <cstring>
 #include <string>
 #include <cmath>
+#include <pwd.h> // For getpwuid
 // lib to read from file
 #include <fstream>
 // for the name of the computer and the logged in user
@@ -140,5 +141,6 @@ struct FanInfo
 string CPUinfo();
 const char *getOsName();
 string getHostname();
+string getUsername();
 
 #endif
