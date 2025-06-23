@@ -82,6 +82,7 @@ int main(int, char **)
 {
     string hostname = getHostname();
     cout << "Retrieved Hostname: " << hostname << endl;
+    cout << "Retrieved Username: " << getUsername() << endl;
 
     // Setup SDL
     // (Some versions of SDL before <2.0.10 appears to have performance/stalling issues on a minority of Windows systems,
