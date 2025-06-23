@@ -48,8 +48,27 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
     ImGui::SetWindowSize(id, size);
     ImGui::SetWindowPos(id, position);
 
-    // student TODO : add code here for the system window
+    // Get system information
+    static SystemInfo sysInfo;
+    static map<string, int> procCounts;
+    static CPUStats prevCPUStats;
+    static CPUStats currCPUStats;
+    static float cpuUsage = 0.0f;
 
+    // Display system information
+    ImGui::Text("System Information");
+    ImGui::Separator();
+
+    ImGui::Text("OS: %s", sysInfo.os_name.c_str());
+    ImGui::Text("Hostname: %s", sysInfo.hostname.c_str());
+    ImGui::Text("User: %s", sysInfo.username.c_str());
+    ImGui::Text("CPU: %s", sysInfo.cpu_model.c_str());
+
+    ImGui::Spacing();
+    ImGui::Text("CPU Usage: %.1f%%", cpuUsage);
+
+    ImGui::Spacing();
+   
     ImGui::End();
 }
 
