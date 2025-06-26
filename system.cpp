@@ -2,11 +2,20 @@
 
 // Global variables for CPU graph
 vector<float> cpu_history;
-bool graph_paused = false; // Global pause state
-float graph_fps = 10.0f;   // Global FPS setting (1-30)
-float graph_scale = 100.0f;  // Global Y-axis scale (100% or 200%)
+bool graph_paused = false;  // Global pause state
+float graph_fps = 10.0f;    // Global FPS setting (1-30)
+float graph_scale = 100.0f; // Global Y-axis scale (100% or 200%)
 mutex cpu_mutex;
 atomic<float> current_cpu_usage(0.0f);
+
+// Global variables for Thermal monitoring
+vector<float> thermal_history;
+bool thermal_paused = false;
+float thermal_fps = 10.0f;
+float thermal_scale = 100.0f;
+mutex thermal_mutex;
+atomic<float> current_temperature(0.0f);
+atomic<bool> thermal_available(false);
 
 // get cpu id and information, you can use `proc/cpuinfo`
 string CPUinfo()
