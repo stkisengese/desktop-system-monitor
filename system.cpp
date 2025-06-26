@@ -720,3 +720,57 @@ void updateFanHistory()
         }
     }
 }
+
+// Render the fan status with controls
+void renderFanStatus()
+{
+    if (!fan_available.load())
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "No fan sensors detected");
+        ImGui::Text("Fan monitoring is not available on this system.");
+        return;
+    }
+
+    ImGui::Text("Fan Status Information");
+    ImGui::Separator();
+
+    // Fan status
+    bool is_active = fan_active.load();
+    ImGui::Text("Status: ");
+    ImGui::SameLine();
+    if (is_active)
+    {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Active");
+    }
+    else
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Inactive");
+    }
+
+    // Fan speed
+    int speed = current_fan_speed.load();
+    ImGui::Text("Current Speed: %d RPM", speed);
+
+    // Fan level (PWM)
+    int level = current_fan_level.load();
+    float level_percent = (level / 255.0f) * 100.0f;
+    ImGui::Text("PWM Level: %d (%.1f%%)", level, level_percent);
+
+    // Speed indicator
+    if (speed > 3000)
+    {
+        ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "High Speed");
+    }
+    else if (speed > 1500)
+    {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "Medium Speed");
+    }
+    else if (speed > 0)
+    {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Low Speed");
+    }
+    else
+    {
+        ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Stopped");
+    }
+}
