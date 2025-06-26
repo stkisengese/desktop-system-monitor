@@ -44,39 +44,13 @@ using namespace gl;
 // systemWindow, display information for the system monitorization
 void systemWindow(const char *id, ImVec2 size, ImVec2 position)
 {
+    static SystemInfo sysInfo = getSystemInfo();
+    static float cpuUsage = 0.0f;
+    static auto last_update = chrono::steady_clock::now();
+    
     ImGui::Begin(id);
     ImGui::SetWindowSize(id, size);
     ImGui::SetWindowPos(id, position);
-
-    // Get system information
-    static SystemInfo sysInfo;
-    static map<string, int> procCounts;
-    static CPUStats prevCPUStats;
-    static CPUStats currCPUStats;
-    static float cpuUsage = 0.0f;
-    static bool initialized = false;
-
-    // Initialize or update data periodically
-    static float lastUpdate = ImGui::GetTime();
-    if (!initialized || (ImGui::GetTime() - lastUpdate) > 2.0f)
-    {
-        sysInfo = getSystemInfo();
-        procCounts = getProcessCounts();
-
-        if (initialized)
-        {
-            prevCPUStats = currCPUStats;
-        }
-        currCPUStats = getCurrentCPUStats();
-
-        if (initialized)
-        {
-            cpuUsage = calculateCPUUsage(prevCPUStats, currCPUStats);
-        }
-
-        lastUpdate = ImGui::GetTime();
-        initialized = true;
-    }
 
     // Display system information
     ImGui::Text("System Information");
@@ -88,14 +62,57 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
     ImGui::Text("CPU: %s", sysInfo.cpu_model.c_str());
 
     ImGui::Spacing();
-    ImGui::Text("CPU Usage: %.1f%%", cpuUsage);
-
-    ImGui::Spacing();
     ImGui::Text("Process Counts");
     ImGui::Separator();
-    ImGui::Text("Total: %d Running: %d Sleeping: %d Zombie: %d Stopped: %d", sysInfo.total_processes,
-                sysInfo.running_processes, sysInfo.sleeping_processes, sysInfo.zombie_processes, sysInfo.stopped_processes);
+    ImGui::Text("Total: %d Running: %d Sleeping: %d Zombie: %d Stopped: %d", 
+                sysInfo.total_processes, sysInfo.running_processes, 
+                sysInfo.sleeping_processes, sysInfo.zombie_processes, 
+                sysInfo.stopped_processes);
+    
+    ImGui::Spacing();
     ImGui::Separator();
+    
+    // Tabbed interface for performance monitoring
+    if (ImGui::BeginTabBar("PerformanceMonitor")) {
+        
+        // CPU Tab
+        if (ImGui::BeginTabItem("CPU")) {
+            // Update CPU data based on FPS setting
+            auto now = chrono::steady_clock::now();
+            auto elapsed = chrono::duration_cast<chrono::milliseconds>(now - last_update);
+            
+            if (elapsed.count() >= (1000.0f / graph_fps)) {
+                updateCPUHistory();
+                last_update = now;
+            }
+            
+            renderCPUGraph();
+            ImGui::EndTabItem();
+        }
+        
+        // Placeholder tabs for future implementation
+        if (ImGui::BeginTabItem("Fan")) {
+            ImGui::Text("Fan monitoring will be implemented in Issue 6");
+            ImGui::Text("Features:");
+            ImGui::BulletText("Fan speed (RPM)");
+            ImGui::BulletText("Fan level");
+            ImGui::BulletText("Active/Inactive status");
+            ImGui::BulletText("Speed history graph");
+            ImGui::EndTabItem();
+        }
+        
+        if (ImGui::BeginTabItem("Thermal")) {
+            ImGui::Text("Thermal monitoring will be implemented in Issue 5");
+            ImGui::Text("Features:");
+            ImGui::BulletText("Current temperature");
+            ImGui::BulletText("Temperature history graph");
+            ImGui::BulletText("Celsius/Fahrenheit conversion");
+            ImGui::BulletText("Sensor availability detection");
+            ImGui::EndTabItem();
+        }
+        
+        ImGui::EndTabBar();
+    }
 
     ImGui::End();
 }
