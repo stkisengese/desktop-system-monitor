@@ -346,10 +346,10 @@ void renderCPUGraph()
     ImGui::Separator();
 
     // Control buttons and sliders
-    ImGui::Columns(3, "controls", false);
+    ImGui::Columns(3, "cpu_controls", false);
 
     // Pause/Resume button
-    if (ImGui::Button(graph_paused ? "Resume" : "Pause", ImVec2(80, 0)))
+    if (ImGui::Button(graph_paused ? "Resume##cpu" : "Pause##cpu", ImVec2(80, 0)))
     {
         graph_paused = !graph_paused;
     }
@@ -359,14 +359,14 @@ void renderCPUGraph()
     // FPS control slider
     ImGui::Text("FPS:");
     ImGui::SetNextItemWidth(120);
-    ImGui::SliderFloat("##fps", &graph_fps, 1.0f, 30.0f, "%.0f");
+    ImGui::SliderFloat("##cpu_fps", &graph_fps, 1.0f, 30.0f, "%.0f");
 
     ImGui::NextColumn();
 
     // Y-axis scale control slider
     ImGui::Text("Y-Scale:");
     ImGui::SetNextItemWidth(120);
-    ImGui::SliderFloat("##scale", &graph_scale, 100.0f, 200.0f, "%.0f%%");
+    ImGui::SliderFloat("##cpu_scale", &graph_scale, 100.0f, 200.0f, "%.0f%%");
 
     ImGui::Columns(1);
     ImGui::Spacing();
