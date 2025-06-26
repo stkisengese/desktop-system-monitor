@@ -1,5 +1,9 @@
 #include "header.h"
 
+// Global variables for CPU graph
+mutex cpu_mutex;
+atomic<float> current_cpu_usage(0.0f);
+
 // get cpu id and information, you can use `proc/cpuinfo`
 string CPUinfo()
 {
@@ -269,4 +273,31 @@ SystemInfo getSystemInfo()
     info.stopped_processes = processCounts["stopped"];
     
     return info;
+}
+
+// // Function to update CPU history data
+void updateCPUHistory() {
+    static CPUStats prev_stats;
+    static bool first_run = true;
+    
+    CPUStats curr_stats = getCurrentCPUStats();
+    
+    if (!first_run) {
+        float usage = calculateCPUUsage(prev_stats, curr_stats);
+        current_cpu_usage.store(usage);
+        
+        if (!graph_paused) {
+            lock_guard<mutex> lock(cpu_mutex);
+            cpu_history.push_back(usage);
+            
+            // Keep only last 100 data points
+            if (cpu_history.size() > 100) {
+                cpu_history.erase(cpu_history.begin());
+            }
+        }
+    } else {
+        first_run = false;
+    }
+    
+    prev_stats = curr_stats;
 }
