@@ -501,3 +501,109 @@ void updateThermalHistory()
         }
     }
 }
+
+// Render the thermal graph with controls
+void renderThermalGraph()
+{
+    ImGui::Text("Thermal Monitor");
+    ImGui::Separator();
+
+    if (!thermal_available.load())
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "No thermal sensors detected");
+        ImGui::Text("Thermal monitoring is not available on this system.");
+        return;
+    }
+
+    // Control buttons and sliders
+    ImGui::Columns(3, "thermal_controls", false);
+
+    // Pause/Resume button
+    if (ImGui::Button(thermal_paused ? "Resume##thermal" : "Pause##thermal", ImVec2(80, 0)))
+    {
+        thermal_paused = !thermal_paused;
+    }
+
+    ImGui::NextColumn();
+
+    // FPS control slider
+    ImGui::Text("FPS:");
+    ImGui::SetNextItemWidth(120);
+    ImGui::SliderFloat("##thermal_fps", &thermal_fps, 1.0f, 30.0f, "%.0f");
+
+    ImGui::NextColumn();
+
+    // Y-axis scale control slider
+    ImGui::Text("Y-Scale:");
+    ImGui::SetNextItemWidth(120);
+    ImGui::SliderFloat("##thermal_scale", &thermal_scale, 60.0f, 120.0f, "%.0f°C");
+
+    ImGui::Columns(1);
+    ImGui::Spacing();
+
+    // Current temperature overlay
+    float temp = current_temperature.load();
+    ImGui::Text("Current Temperature: %.1f°C (%.1f°F)", temp, (temp * 9.0f / 5.0f) + 32.0f);
+
+    // Temperature status indication
+    if (temp > 80.0f)
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "WARNING: High Temperature!");
+    }
+    else if (temp > 70.0f)
+    {
+        ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "CAUTION: Elevated Temperature");
+    }
+    else
+    {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Temperature Normal");
+    }
+
+    // Graph plotting
+    if (!thermal_history.empty())
+    {
+        lock_guard<mutex> lock(thermal_mutex);
+
+        ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
+        ImVec2 canvas_size = ImGui::GetContentRegionAvail();
+        canvas_size.y = min(canvas_size.y, 200.0f);
+
+        vector<float> plot_data = thermal_history;
+        thermal_mutex.unlock();
+
+        // Plot the graph
+        ImGui::PlotLines("##thermal_graph",
+                         plot_data.data(),
+                         plot_data.size(),
+                         0, nullptr, 0.0f, thermal_scale, canvas_size);
+
+        // Add overlay text on the graph
+        ImDrawList *draw_list = ImGui::GetWindowDrawList();
+        ImVec2 text_pos = ImVec2(canvas_pos.x + 10, canvas_pos.y + 10);
+
+        char overlay_text[32];
+        snprintf(overlay_text, sizeof(overlay_text), "%.1f°C", temp);
+        ImVec2 text_size = ImGui::CalcTextSize(overlay_text);
+
+        draw_list->AddRectFilled(
+            ImVec2(text_pos.x - 5, text_pos.y - 2),
+            ImVec2(text_pos.x + text_size.x + 5, text_pos.y + text_size.y + 2),
+            IM_COL32(0, 0, 0, 128));
+
+        draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), overlay_text);
+
+        thermal_mutex.lock();
+    }
+    else
+    {
+        ImGui::Text("Collecting thermal data...");
+    }
+
+    // Graph statistics
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Text("Graph Info:");
+    ImGui::Text("Data Points: %zu/100", thermal_history.size());
+    ImGui::Text("Status: %s", thermal_paused ? "Paused" : "Running");
+    ImGui::Text("Update Rate: %.0f FPS", thermal_fps);
+}
