@@ -607,3 +607,90 @@ void renderThermalGraph()
     ImGui::Text("Status: %s", thermal_paused ? "Paused" : "Running");
     ImGui::Text("Update Rate: %.0f FPS", thermal_fps);
 }
+
+// FanInfo structure to hold fan information
+FanInfo getFanInfo()
+{
+    FanInfo info;
+    info.available = false;
+    info.speed = 0;
+    info.level = 0;
+    info.active = false;
+
+    // Search for fan sensors in hwmon directories
+    try
+    {
+        for (const auto &entry : filesystem::directory_iterator("/sys/class/hwmon/"))
+        {
+            if (entry.is_directory())
+            {
+                string hwmon_path = entry.path().string();
+
+                // Check for fan speed (fan1_input, fan2_input, etc.)
+                for (int fan_num = 1; fan_num <= 4; fan_num++)
+                {
+                    string speed_path = hwmon_path + "/fan" + to_string(fan_num) + "_input";
+                    ifstream speed_file(speed_path);
+
+                    if (speed_file.is_open())
+                    {
+                        string speed_str;
+                        if (getline(speed_file, speed_str))
+                        {
+                            try
+                            {
+                                info.speed = stoi(speed_str);
+                                info.available = true;
+                                speed_file.close();
+
+                                // Check for fan enable status
+                                string enable_path = hwmon_path + "/fan" + to_string(fan_num) + "_enable";
+                                ifstream enable_file(enable_path);
+                                if (enable_file.is_open())
+                                {
+                                    string enable_str;
+                                    if (getline(enable_file, enable_str))
+                                    {
+                                        info.active = (stoi(enable_str) == 1);
+                                    }
+                                    enable_file.close();
+                                }
+                                else
+                                {
+                                    // If no enable file, assume active if speed > 0
+                                    info.active = (info.speed > 0);
+                                }
+
+                                // Check for PWM level
+                                string pwm_path = hwmon_path + "/pwm" + to_string(fan_num);
+                                ifstream pwm_file(pwm_path);
+                                if (pwm_file.is_open())
+                                {
+                                    string pwm_str;
+                                    if (getline(pwm_file, pwm_str))
+                                    {
+                                        info.level = stoi(pwm_str);
+                                    }
+                                    pwm_file.close();
+                                }
+
+                                return info;
+                            }
+                            catch (const exception &e)
+                            {
+                                // Continue to next fan
+                            }
+                        }
+                        speed_file.close();
+                    }
+                }
+            }
+        }
+    }
+    catch (const exception &e)
+    {
+        // Directory doesn't exist or can't be accessed
+    }
+
+    return info;
+}
