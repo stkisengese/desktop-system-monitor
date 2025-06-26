@@ -1,6 +1,10 @@
 #include "header.h"
 
 // Global variables for CPU graph
+vector<float> cpu_history;
+bool graph_paused = false; // Global pause state
+float graph_fps = 10.0f;   // Global FPS setting (1-30)
+int graph_scale = 100.0f;  // Global Y-axis scale (100% or 200%)
 mutex cpu_mutex;
 atomic<float> current_cpu_usage(0.0f);
 
@@ -151,14 +155,17 @@ float calculateCPUUsage(CPUStats prev, CPUStats curr)
     long long int idleDiff = currIdle - prevIdle;
 
     // Avoid division by zero
-    if (totalDiff == 0) return 0.0f;
+    if (totalDiff == 0)
+        return 0.0f;
 
     // Calculate CPU usage percentage
     float usage = ((float)(totalDiff - idleDiff) / totalDiff) * 100.0f;
 
     // Ensure the result is within valid range
-    if (usage < 0.0f) usage = 0.0f;
-    if (usage > 100.0f) usage = 100.0f;
+    if (usage < 0.0f)
+        usage = 0.0f;
+    if (usage > 100.0f)
+        usage = 100.0f;
     return usage;
 }
 
@@ -168,7 +175,7 @@ map<string, int> getProcessCounts()
     map<string, int> counts;
     ifstream file("/proc/stat");
     string line;
-    
+
     // Initialize counts
     counts["total"] = 0;
     counts["running"] = 0;
@@ -176,22 +183,29 @@ map<string, int> getProcessCounts()
     counts["sleeping"] = 0;
     counts["zombie"] = 0;
     counts["stopped"] = 0;
-    
-    if (file.is_open()) {
-        while (getline(file, line)) {
-            if (line.substr(0, 9) == "processes") {
+
+    if (file.is_open())
+    {
+        while (getline(file, line))
+        {
+            if (line.substr(0, 9) == "processes")
+            {
                 istringstream iss(line);
                 string label;
                 int total;
                 iss >> label >> total;
                 counts["total"] = total;
-            } else if (line.substr(0, 13) == "procs_running") {
+            }
+            else if (line.substr(0, 13) == "procs_running")
+            {
                 istringstream iss(line);
                 string label;
                 int running;
                 iss >> label >> running;
                 counts["running"] = running;
-            } else if (line.substr(0, 13) == "procs_blocked") {
+            }
+            else if (line.substr(0, 13) == "procs_blocked")
+            {
                 istringstream iss(line);
                 string label;
                 int blocked;
@@ -200,47 +214,55 @@ map<string, int> getProcessCounts()
             }
         }
         file.close();
-    } else {
+    }
+    else
+    {
         cerr << "Error: Unable to open /proc/stat" << endl;
         return counts;
     }
-    
+
     // Get more detailed process states by reading /proc/*/stat files
-    DIR* proc_dir = opendir("/proc");
-    if (proc_dir != nullptr) {
-        struct dirent* entry;
-        while ((entry = readdir(proc_dir)) != nullptr) {
+    DIR *proc_dir = opendir("/proc");
+    if (proc_dir != nullptr)
+    {
+        struct dirent *entry;
+        while ((entry = readdir(proc_dir)) != nullptr)
+        {
             // Check if directory name is a number (PID)
             string dirname = entry->d_name;
-            if (dirname.find_first_not_of("0123456789") == string::npos && !dirname.empty()) {
+            if (dirname.find_first_not_of("0123456789") == string::npos && !dirname.empty())
+            {
                 string stat_path = "/proc/" + dirname + "/stat";
                 ifstream stat_file(stat_path);
-                
-                if (stat_file.is_open()) {
+
+                if (stat_file.is_open())
+                {
                     string stat_line;
-                    if (getline(stat_file, stat_line)) {
+                    if (getline(stat_file, stat_line))
+                    {
                         istringstream iss(stat_line);
                         string token;
-                        
+
                         // Skip PID and command name (can contain spaces and parentheses)
                         iss >> token; // PID
                         iss >> token; // Command name in parentheses
-                        
+
                         char state;
                         iss >> state; // Process state
-                        
-                        switch (state) {
-                            case 'S': // Sleeping
-                            case 'D': // Uninterruptible sleep
-                                counts["sleeping"]++;
-                                break;
-                            case 'Z': // Zombie
-                                counts["zombie"]++;
-                                break;
-                            case 'T': // Stopped
-                            case 't': // Tracing stop
-                                counts["stopped"]++;
-                                break;
+
+                        switch (state)
+                        {
+                        case 'S': // Sleeping
+                        case 'D': // Uninterruptible sleep
+                            counts["sleeping"]++;
+                            break;
+                        case 'Z': // Zombie
+                            counts["zombie"]++;
+                            break;
+                        case 'T': // Stopped
+                        case 't': // Tracing stop
+                            counts["stopped"]++;
+                            break;
                         }
                     }
                     stat_file.close();
@@ -249,7 +271,7 @@ map<string, int> getProcessCounts()
         }
         closedir(proc_dir);
     }
-    
+
     return counts;
 }
 
@@ -257,13 +279,13 @@ map<string, int> getProcessCounts()
 SystemInfo getSystemInfo()
 {
     SystemInfo info;
-    
+
     // Get basic system information
     info.os_name = getOsName();
     info.hostname = getHostname();
     info.username = getUsername();
     info.cpu_model = CPUinfo();
-    
+
     // Get process counts
     map<string, int> processCounts = getProcessCounts();
     info.total_processes = processCounts["total"];
@@ -271,33 +293,134 @@ SystemInfo getSystemInfo()
     info.sleeping_processes = processCounts["sleeping"];
     info.zombie_processes = processCounts["zombie"];
     info.stopped_processes = processCounts["stopped"];
-    
+
     return info;
 }
 
 // // Function to update CPU history data
-void updateCPUHistory() {
+void updateCPUHistory()
+{
     static CPUStats prev_stats;
     static bool first_run = true;
-    
+
     CPUStats curr_stats = getCurrentCPUStats();
-    
-    if (!first_run) {
+
+    if (!first_run)
+    {
         float usage = calculateCPUUsage(prev_stats, curr_stats);
         current_cpu_usage.store(usage);
-        
-        if (!graph_paused) {
+
+        if (!graph_paused)
+        {
             lock_guard<mutex> lock(cpu_mutex);
             cpu_history.push_back(usage);
-            
+
             // Keep only last 100 data points
-            if (cpu_history.size() > 100) {
+            if (cpu_history.size() > 100)
+            {
                 cpu_history.erase(cpu_history.begin());
             }
         }
-    } else {
+    }
+    else
+    {
         first_run = false;
     }
-    
+
     prev_stats = curr_stats;
+}
+
+// Render the CPU graph with controls
+void renderCPUGraph()
+{
+    ImGui::Text("CPU Performance Monitor");
+    ImGui::Separator();
+
+    // Control buttons and sliders
+    ImGui::Columns(3, "controls", false);
+
+    // Pause/Resume button
+    if (ImGui::Button(graph_paused ? "Resume" : "Pause", ImVec2(80, 0)))
+    {
+        graph_paused = !graph_paused;
+    }
+
+    ImGui::NextColumn();
+
+    // FPS control slider
+    ImGui::Text("FPS:");
+    ImGui::SetNextItemWidth(120);
+    ImGui::SliderFloat("##fps", &graph_fps, 1.0f, 30.0f, "%.0f");
+
+    ImGui::NextColumn();
+
+    // Y-axis scale control slider
+    ImGui::Text("Y-Scale:");
+    ImGui::SetNextItemWidth(120);
+    ImGui::SliderFloat("##scale", &graph_scale, 100.0f, 200.0f, "%.0f%%");
+
+    ImGui::Columns(1);
+    ImGui::Spacing();
+
+    // Current CPU usage overlay
+    float cpu_percent = current_cpu_usage.load();
+    ImGui::Text("Current CPU Usage: %.1f%%", cpu_percent);
+
+    // Graph plotting
+    if (!cpu_history.empty())
+    {
+        lock_guard<mutex> lock(cpu_mutex);
+
+        // Calculate graph size
+        ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
+        ImVec2 canvas_size = ImGui::GetContentRegionAvail();
+        canvas_size.y = min(canvas_size.y, 200.0f); // Limit height
+
+        // Create a copy of the data for plotting to avoid holding the lock too long
+        vector<float> plot_data = cpu_history;
+
+        // Release lock before plotting
+        cpu_mutex.unlock();
+
+        // Plot the graph
+        ImGui::PlotLines("##cpu_graph",
+                         plot_data.data(),
+                         plot_data.size(),
+                         0,           // values_offset
+                         nullptr,     // overlay_text
+                         0.0f,        // scale_min
+                         graph_scale, // scale_max
+                         canvas_size);
+
+        // Add overlay text on the graph
+        ImDrawList *draw_list = ImGui::GetWindowDrawList();
+        ImVec2 text_pos = ImVec2(canvas_pos.x + 10, canvas_pos.y + 10);
+
+        // Background for overlay text
+        ImVec2 text_size = ImGui::CalcTextSize("CPU: 100.0%");
+        draw_list->AddRectFilled(
+            ImVec2(text_pos.x - 5, text_pos.y - 2),
+            ImVec2(text_pos.x + text_size.x + 5, text_pos.y + text_size.y + 2),
+            IM_COL32(0, 0, 0, 128));
+
+        // Overlay text
+        char overlay_text[32];
+        snprintf(overlay_text, sizeof(overlay_text), "CPU: %.1f%%", cpu_percent);
+        draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), overlay_text);
+
+        // Re-acquire lock for any remaining operations
+        cpu_mutex.lock();
+    }
+    else
+    {
+        ImGui::Text("Collecting CPU data...");
+    }
+
+    // Graph statistics
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Text("Graph Info:");
+    ImGui::Text("Data Points: %zu/100", cpu_history.size());
+    ImGui::Text("Status: %s", graph_paused ? "Paused" : "Running");
+    ImGui::Text("Update Rate: %.0f FPS", graph_fps);
 }
