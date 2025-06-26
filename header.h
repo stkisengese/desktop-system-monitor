@@ -1,4 +1,3 @@
-// To make sure you don't declare the function more than once by including the header multiple times.
 #ifndef header_H
 #define header_H
 
@@ -15,7 +14,11 @@
 #include <sstream>
 #include <thread>
 #include <chrono>
-#include <pwd.h> // For getpwuid
+#include <algorithm>
+#include <numeric>
+#include <atomic>
+#include <mutex>
+#include <pwd.h>   // For getpwuid
 #include <fstream> // lib to read from file
 // for the name of the computer and the logged in user
 #include <unistd.h>
@@ -29,7 +32,7 @@
 #include <sys/types.h>
 #include <sys/sysinfo.h>
 #include <sys/statvfs.h>
-#include <ctime> // for time and date
+#include <ctime>       // for time and date
 #include <sys/types.h> // ifconfig ip addresses
 #include <ifaddrs.h>
 #include <netinet/in.h>
@@ -146,5 +149,18 @@ SystemInfo getSystemInfo();
 map<string, int> getProcessCounts();
 CPUStats getCurrentCPUStats();
 float calculateCPUUsage(CPUStats prev, CPUStats curr);
+
+// CPU Graph Global Variables (extern declarations)
+extern vector<float> cpu_history;
+extern bool graph_paused;
+extern float graph_fps;
+extern float graph_scale;
+
+// CPU Graph Functions
+void updateCPUHistory();
+void renderCPUGraph();
+
+// Updated system window function signature
+void systemWindow(const char *id, ImVec2 size, ImVec2 position);
 
 #endif
