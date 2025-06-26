@@ -694,3 +694,29 @@ FanInfo getFanInfo()
 
     return info;
 }
+
+// Update fan history data
+void updateFanHistory()
+{
+    FanInfo fan_info = getFanInfo();
+    fan_available.store(fan_info.available);
+
+    if (fan_info.available)
+    {
+        current_fan_speed.store(fan_info.speed);
+        current_fan_level.store(fan_info.level);
+        fan_active.store(fan_info.active);
+
+        if (!fan_paused)
+        {
+            lock_guard<mutex> lock(fan_mutex);
+            fan_speed_history.push_back(fan_info.speed);
+
+            // Keep only last 100 data points
+            if (fan_speed_history.size() > 100)
+            {
+                fan_speed_history.erase(fan_speed_history.begin());
+            }
+        }
+    }
+}
