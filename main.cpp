@@ -44,13 +44,20 @@ using namespace gl;
 // systemWindow, display information for the system monitorization
 void systemWindow(const char *id, ImVec2 size, ImVec2 position)
 {
-    static SystemInfo sysInfo = getSystemInfo();
-    static float cpuUsage = 0.0f;
-    static auto last_update = chrono::steady_clock::now();
-    
+    static SystemInfo sysInfo;
+    static auto last_info_update = chrono::steady_clock::now();
+
     ImGui::Begin(id);
     ImGui::SetWindowSize(id, size);
     ImGui::SetWindowPos(id, position);
+
+    auto now = chrono::steady_clock::now();
+    auto elapsed = chrono::duration_cast<chrono::milliseconds>(now - last_info_update);
+    if (elapsed.count() > 2000) // Refresh every 2 seconds
+    {
+        sysInfo = getSystemInfo(); // fetch fresh data from /proc
+        last_info_update = now;
+    }
 
     // Display system information
     ImGui::Text("System Information");
@@ -64,34 +71,37 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
     ImGui::Spacing();
     ImGui::Text("Process Counts");
     ImGui::Separator();
-    ImGui::Text("Total: %d Running: %d Sleeping: %d Zombie: %d Stopped: %d", 
-                sysInfo.total_processes, sysInfo.running_processes, 
-                sysInfo.sleeping_processes, sysInfo.zombie_processes, 
+    ImGui::Text("Total: %d Running: %d Sleeping: %d Zombie: %d Stopped: %d",
+                sysInfo.total_processes, sysInfo.running_processes,
+                sysInfo.sleeping_processes, sysInfo.zombie_processes,
                 sysInfo.stopped_processes);
-    
+
     ImGui::Spacing();
     ImGui::Separator();
-    
+
     // Tabbed interface for performance monitoring
-    if (ImGui::BeginTabBar("PerformanceMonitor")) {
-        
-        // CPU Tab
-        if (ImGui::BeginTabItem("CPU")) {
+    if (ImGui::BeginTabBar("PerformanceMonitor"))
+    {
+        if (ImGui::BeginTabItem("CPU")) // CPU Tab
+        {
             // Update CPU data based on FPS setting
             auto now = chrono::steady_clock::now();
+            static auto last_update = now;
             auto elapsed = chrono::duration_cast<chrono::milliseconds>(now - last_update);
-            
-            if (elapsed.count() >= (1000.0f / graph_fps)) {
+
+            if (!graph_paused && elapsed.count() >= (1000.0f / graph_fps))
+            {
                 updateCPUHistory();
                 last_update = now;
             }
-            
+
             renderCPUGraph();
             ImGui::EndTabItem();
         }
-        
+
         // Placeholder tabs for future implementation
-        if (ImGui::BeginTabItem("Fan")) {
+        if (ImGui::BeginTabItem("Fan"))
+        {
             ImGui::Text("Fan monitoring will be implemented in Issue 6");
             ImGui::Text("Features:");
             ImGui::BulletText("Fan speed (RPM)");
@@ -100,8 +110,9 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
             ImGui::BulletText("Speed history graph");
             ImGui::EndTabItem();
         }
-        
-        if (ImGui::BeginTabItem("Thermal")) {
+
+        if (ImGui::BeginTabItem("Thermal"))
+        {
             ImGui::Text("Thermal monitoring will be implemented in Issue 5");
             ImGui::Text("Features:");
             ImGui::BulletText("Current temperature");
@@ -110,7 +121,7 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
             ImGui::BulletText("Sensor availability detection");
             ImGui::EndTabItem();
         }
-        
+
         ImGui::EndTabBar();
     }
 
