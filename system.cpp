@@ -774,3 +774,100 @@ void renderFanStatus()
         ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Stopped");
     }
 }
+
+// Render the fan speed graph with controls
+void renderFanGraph()
+{
+    ImGui::Text("Fan Speed Monitor");
+    ImGui::Separator();
+
+    // Display fan status first
+    renderFanStatus();
+    if (!fan_available.load())
+    {
+        return;
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Text("Fan Speed Graph");
+    ImGui::Columns(3, "fan_controls", false); // Control buttons and sliders
+
+    // Pause/Resume button
+    if (ImGui::Button(fan_paused ? "Resume##fan" : "Pause##fan", ImVec2(80, 0)))
+    {
+        fan_paused = !fan_paused;
+    }
+
+    ImGui::NextColumn();
+
+    // FPS control slider
+    ImGui::Text("FPS:");
+    ImGui::SetNextItemWidth(120);
+    ImGui::SliderFloat("##fan_fps", &fan_fps, 1.0f, 30.0f, "%.0f");
+
+    ImGui::NextColumn();
+
+    // Y-axis scale control slider
+    ImGui::Text("Y-Scale:");
+    ImGui::SetNextItemWidth(120);
+    ImGui::SliderFloat("##fan_scale", &fan_scale, 2000.0f, 8000.0f, "%.0f RPM");
+
+    ImGui::Columns(1);
+    ImGui::Spacing();
+
+    // Graph plotting
+    if (!fan_speed_history.empty())
+    {
+        lock_guard<mutex> lock(fan_mutex);
+
+        ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
+        ImVec2 canvas_size = ImGui::GetContentRegionAvail();
+        canvas_size.y = min(canvas_size.y, 200.0f);
+
+        // Convert int vector to float for plotting
+        vector<float> plot_data;
+        plot_data.reserve(fan_speed_history.size());
+        for (int speed : fan_speed_history)
+        {
+            plot_data.push_back(static_cast<float>(speed));
+        }
+
+        fan_mutex.unlock();
+
+        // Plot the graph
+        ImGui::PlotLines("##fan_graph",
+                         plot_data.data(),
+                         plot_data.size(),
+                         0, nullptr, 0.0f, fan_scale, canvas_size);
+
+        // Add overlay text on the graph
+        ImDrawList *draw_list = ImGui::GetWindowDrawList();
+        ImVec2 text_pos = ImVec2(canvas_pos.x + 10, canvas_pos.y + 10);
+
+        char overlay_text[32];
+        snprintf(overlay_text, sizeof(overlay_text), "%d RPM", current_fan_speed.load());
+        ImVec2 text_size = ImGui::CalcTextSize(overlay_text);
+
+        draw_list->AddRectFilled(
+            ImVec2(text_pos.x - 5, text_pos.y - 2),
+            ImVec2(text_pos.x + text_size.x + 5, text_pos.y + text_size.y + 2),
+            IM_COL32(0, 0, 0, 128));
+        // Draw the overlay text
+        draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), overlay_text);
+
+        fan_mutex.lock();
+    }
+    else
+    {
+        ImGui::Text("Collecting fan data...");
+    }
+
+    // Graph statistics
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Text("Graph Info:");
+    ImGui::Text("Data Points: %zu/100", fan_speed_history.size());
+    ImGui::Text("Status: %s", fan_paused ? "Paused" : "Running");
+    ImGui::Text("Update Rate: %.0f FPS", fan_fps);
+}
