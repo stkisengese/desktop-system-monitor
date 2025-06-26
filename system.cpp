@@ -4,7 +4,7 @@
 vector<float> cpu_history;
 bool graph_paused = false; // Global pause state
 float graph_fps = 10.0f;   // Global FPS setting (1-30)
-int graph_scale = 100.0f;  // Global Y-axis scale (100% or 200%)
+float graph_scale = 100.0f;  // Global Y-axis scale (100% or 200%)
 mutex cpu_mutex;
 atomic<float> current_cpu_usage(0.0f);
 
