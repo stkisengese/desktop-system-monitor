@@ -155,10 +155,26 @@ extern vector<float> cpu_history;
 extern bool graph_paused;
 extern float graph_fps;
 extern float graph_scale;
+extern atomic<float> current_cpu_usage;
+extern mutex cpu_mutex;
+
+// Thermal Global Variables (extern declarations)
+extern vector<float> thermal_history;
+extern bool thermal_paused;
+extern float thermal_fps;
+extern float thermal_scale;
+extern atomic<float> current_temperature;
+extern atomic<bool> thermal_available;
+extern mutex thermal_mutex;
 
 // CPU Graph Functions
 void updateCPUHistory();
 void renderCPUGraph();
+
+// Thermal Graph Functions
+ThermalInfo getThermalInfo();
+void updateThermalHistory();
+void renderThermalGraph();
 
 // Updated system window function signature
 void systemWindow(const char *id, ImVec2 size, ImVec2 position);
