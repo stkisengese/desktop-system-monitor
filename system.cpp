@@ -434,40 +434,70 @@ void renderCPUGraph()
     ImGui::Text("Update Rate: %.0f FPS", graph_fps);
 }
 
-// Thermal Functions
-ThermalInfo getThermalInfo() {
+// Get thermal information from various sensor paths
+ThermalInfo getThermalInfo()
+{
     ThermalInfo info;
     info.available = false;
     info.temperature = 0.0f;
-    
+
     // Try different thermal sensor paths
     vector<string> thermal_paths = {
         "/sys/class/thermal/thermal_zone0/temp",
         "/sys/class/thermal/thermal_zone1/temp",
         "/sys/class/hwmon/hwmon0/temp1_input",
         "/sys/class/hwmon/hwmon1/temp1_input",
-        "/sys/class/hwmon/hwmon2/temp1_input"
-    };
-    
-    for (const string& path : thermal_paths) {
+        "/sys/class/hwmon/hwmon2/temp1_input"};
+
+    for (const string &path : thermal_paths)
+    {
         ifstream file(path);
-        if (file.is_open()) {
+        if (file.is_open())
+        {
             string temp_str;
-            if (getline(file, temp_str)) {
-                try {
+            if (getline(file, temp_str))
+            {
+                try
+                {
                     long temp_raw = stol(temp_str);
                     // Convert from millicelsius to celsius
                     info.temperature = temp_raw / 1000.0f;
                     info.available = true;
                     file.close();
                     return info;
-                } catch (const exception& e) {
+                }
+                catch (const exception &e)
+                {
                     // Continue to next path
                 }
             }
             file.close();
         }
     }
-    
+
     return info;
+}
+
+// Update thermal history data
+void updateThermalHistory()
+{
+    ThermalInfo thermal_info = getThermalInfo();
+    thermal_available.store(thermal_info.available);
+
+    if (thermal_info.available)
+    {
+        current_temperature.store(thermal_info.temperature);
+
+        if (!thermal_paused)
+        {
+            lock_guard<mutex> lock(thermal_mutex);
+            thermal_history.push_back(thermal_info.temperature);
+
+            // Keep only last 100 data points
+            if (thermal_history.size() > 100)
+            {
+                thermal_history.erase(thermal_history.begin());
+            }
+        }
+    }
 }
