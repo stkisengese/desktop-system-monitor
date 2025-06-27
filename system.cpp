@@ -17,6 +17,17 @@ mutex thermal_mutex;
 atomic<float> current_temperature(0.0f);
 atomic<bool> thermal_available(false);
 
+// Global variables for Fan monitoring
+vector<int> fan_speed_history;
+bool fan_paused = false;
+float fan_fps = 10.0f;
+float fan_scale = 5000.0f; // RPM scale
+mutex fan_mutex;
+atomic<int> current_fan_speed(0);
+atomic<int> current_fan_level(0);
+atomic<bool> fan_active(false);
+atomic<bool> fan_available(false);
+
 // get cpu id and information, you can use `proc/cpuinfo`
 string CPUinfo()
 {
