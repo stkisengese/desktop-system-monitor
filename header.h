@@ -169,16 +169,16 @@ extern atomic<float> current_temperature;
 extern atomic<bool> thermal_available;
 extern mutex thermal_mutex;
 
-// Global variables for Fan monitoring
-vector<int> fan_speed_history;
-bool fan_paused = false;
-float fan_fps = 10.0f;
-float fan_scale = 5000.0f; // RPM scale
-mutex fan_mutex;
-atomic<int> current_fan_speed(0);
-atomic<int> current_fan_level(0);
-atomic<bool> fan_active(false);
-atomic<bool> fan_available(false);
+// Fan Global Variables (extern declarations)
+extern vector<int> fan_speed_history;
+extern bool fan_paused;
+extern float fan_fps;
+extern float fan_scale;
+extern atomic<int> current_fan_speed;
+extern atomic<int> current_fan_level;
+extern atomic<bool> fan_active;
+extern atomic<bool> fan_available;
+extern mutex fan_mutex;
 
 // CPU Graph Functions
 void updateCPUHistory();
