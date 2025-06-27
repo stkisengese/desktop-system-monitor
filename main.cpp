@@ -82,13 +82,12 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
     // Tabbed interface for performance monitoring
     if (ImGui::BeginTabBar("PerformanceMonitor"))
     {
+        static auto last_update = now;
         if (ImGui::BeginTabItem("CPU")) // CPU Tab
         {
             // Update CPU data based on FPS setting
             auto now = chrono::steady_clock::now();
-            static auto last_update = now;
             auto elapsed = chrono::duration_cast<chrono::milliseconds>(now - last_update);
-
             if (!graph_paused && elapsed.count() >= (1000.0f / graph_fps))
             {
                 updateCPUHistory();
@@ -99,15 +98,17 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
             ImGui::EndTabItem();
         }
 
-        // Placeholder tabs for future implementation
-        if (ImGui::BeginTabItem("Fan"))
+        if (ImGui::BeginTabItem("Fan")) // Fan Tab
         {
-            ImGui::Text("Fan monitoring will be implemented in Issue 6");
-            ImGui::Text("Features:");
-            ImGui::BulletText("Fan speed (RPM)");
-            ImGui::BulletText("Fan level");
-            ImGui::BulletText("Active/Inactive status");
-            ImGui::BulletText("Speed history graph");
+            auto now = chrono::steady_clock::now();
+            auto elapsed = chrono::duration_cast<chrono::milliseconds>(now - last_update);
+            if (!fan_paused && elapsed.count() >= (1000.0f / fan_fps))
+            {
+                updateFanHistory();
+                last_update = now;
+            }
+
+            renderFanGraph();
             ImGui::EndTabItem();
         }
 
