@@ -189,6 +189,12 @@ ThermalInfo getThermalInfo();
 void updateThermalHistory();
 void renderThermalGraph();
 
+// Fan Functions
+FanInfo getFanInfo();
+void updateFanHistory();
+void renderFanGraph();
+void renderFanStatus();
+
 // Updated system window function signature
 void systemWindow(const char *id, ImVec2 size, ImVec2 position);
 
