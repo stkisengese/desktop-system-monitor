@@ -112,14 +112,17 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
             ImGui::EndTabItem();
         }
 
-        if (ImGui::BeginTabItem("Thermal"))
+        if (ImGui::BeginTabItem("Thermal")) // Thermal Tab
         {
-            ImGui::Text("Thermal monitoring will be implemented in Issue 5");
-            ImGui::Text("Features:");
-            ImGui::BulletText("Current temperature");
-            ImGui::BulletText("Temperature history graph");
-            ImGui::BulletText("Celsius/Fahrenheit conversion");
-            ImGui::BulletText("Sensor availability detection");
+            auto now = chrono::steady_clock::now();
+            auto elapsed = chrono::duration_cast<chrono::milliseconds>(now - last_update);
+            if (!thermal_paused && elapsed.count() >= (1000.0f / thermal_fps))
+            {
+                updateThermalHistory();
+                last_update = now;
+            }
+
+            renderThermalGraph();
             ImGui::EndTabItem();
         }
 
