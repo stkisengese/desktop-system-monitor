@@ -454,12 +454,26 @@ void renderProcessTable(vector<Proc> &processes)
             // CPU % column
             ImGui::TableSetColumnIndex(3);
             float cpu_usage = calculateProcessCPU(proc);
-            ImGui::Text("%.1f%%", cpu_usage);
+            if (cpu_usage > 0.1f)
+            {
+                ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "%.1f%%", cpu_usage);
+            }
+            else
+            {
+                ImGui::Text("%.1f%%", cpu_usage);
+            }
 
             // Memory % column
             ImGui::TableSetColumnIndex(4);
             float memory_usage = calculateProcessMemory(proc, mem_info.total_ram);
-            ImGui::Text("%.1f%%", memory_usage);
+            if (memory_usage > 1.0f)
+            {
+                ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "%.1f%%", memory_usage);
+            }
+            else
+            {
+                ImGui::Text("%.1f%%", memory_usage);
+            }
         }
 
         ImGui::EndTable();
