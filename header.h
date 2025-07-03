@@ -201,6 +201,13 @@ MemoryInfo getMemoryInfo();
 float calculateMemoryUsage(unsigned long used, unsigned long total);
 string formatBytes(unsigned long bytes);
 void renderMemoryBars();
+Proc getProcessInfo(int pid);
+vector<Proc> getAllProcesses();
+float calculateProcessCPU(const Proc& proc);
+float calculateProcessMemory(const Proc& proc, unsigned long total_memory);
+vector<Proc> filterProcesses(const vector<Proc>& processes, const string& filter);
+void handleProcessSelection();
+void renderProcessTable(vector<Proc>& processes);
 
 // Updated system window function signature
 void systemWindow(const char *id, ImVec2 size, ImVec2 position);
