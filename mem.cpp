@@ -380,11 +380,12 @@ float getProcessCPUUsage(int pid)
 void renderProcessTable(vector<Proc> &processes)
 {
     MemoryInfo mem_info = getMemoryInfo();
+    updateProcessCPUData();  // Update process CPU data periodically
 
     // Filter input
     ImGui::Text("Filter processes:");
     ImGui::SameLine();
-    bool filter_changed = ImGui::InputText("##ProcessFilter", process_filter, sizeof(process_filter));
+    ImGui::InputText("##ProcessFilter", process_filter, sizeof(process_filter));
 
     // Filter processes
     vector<Proc> filtered_processes = filterProcesses(processes, string(process_filter));
@@ -442,8 +443,8 @@ void renderProcessTable(vector<Proc> &processes)
                          case 2: // State
                              return ascending ? a.state < b.state : a.state > b.state;
                          case 3: // CPU %
-                             return ascending ? calculateProcessCPU(a) < calculateProcessCPU(b)
-                                              : calculateProcessCPU(a) > calculateProcessCPU(b);
+                             return ascending ? getProcessCPUUsage(a.pid) < getProcessCPUUsage(b.pid)
+                                              : getProcessCPUUsage(a.pid) > getProcessCPUUsage(b.pid);
                          case 4: // Memory %
                              return ascending ? calculateProcessMemory(a, mem_info.total_ram) < calculateProcessMemory(b, mem_info.total_ram)
                                               : calculateProcessMemory(a, mem_info.total_ram) > calculateProcessMemory(b, mem_info.total_ram);
@@ -530,7 +531,7 @@ void renderProcessTable(vector<Proc> &processes)
 
             // CPU % column
             ImGui::TableSetColumnIndex(3);
-            float cpu_usage = calculateProcessCPU(proc);
+            float cpu_usage = getProcessCPUUsage(proc.pid);
             if (cpu_usage > 0.1f)
             {
                 ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "%.1f%%", cpu_usage);
