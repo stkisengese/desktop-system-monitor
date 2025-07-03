@@ -283,6 +283,16 @@ vector<Proc> getAllProcesses()
     return processes;
 }
 
+// Calculate process memory usage percentage
+float calculateProcessMemory(const Proc &proc, unsigned long total_memory)
+{
+    if (total_memory == 0)
+        return 0.0f;
+    // RSS is in pages, typically 4KB each
+    unsigned long memory_bytes = proc.rss * 4096;
+    return (float(memory_bytes) / float(total_memory)) * 100.0f;
+}
+
 // Filter processes by name
 vector<Proc> filterProcesses(const vector<Proc> &processes, const string &filter)
 {
@@ -307,6 +317,12 @@ vector<Proc> filterProcesses(const vector<Proc> &processes, const string &filter
     }
 
     return filtered;
+}
+
+// Handle process selection
+void handleProcessSelection()
+{
+    // Currently we just show selcted accounts as highlighted
 }
 
 // Render process table
