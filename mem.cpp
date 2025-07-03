@@ -50,3 +50,11 @@ MemoryInfo getMemoryInfo()
 
     return info;
 }
+
+// Calculate memory usage percentage
+float calculateMemoryUsage(unsigned long used, unsigned long total)
+{
+    if (total == 0)
+        return 0.0f;
+    return (float(used) / float(total)) * 100.0f;
+}
