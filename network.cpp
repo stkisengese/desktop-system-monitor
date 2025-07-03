@@ -121,3 +121,41 @@ Networks getNetworkInterfaces()
     current_networks = networks;
     return networks;
 }
+
+// Smart unit conversion for network bytes
+string formatNetworkBytes(uint64_t bytes)
+{
+    if (bytes < 1024)
+    {
+        return to_string(bytes) + " B";
+    }
+    else if (bytes < 1024 * 1024)
+    {
+        double kb = bytes / 1024.0;
+        if (kb < 100)
+        {
+            return to_string((int)(kb * 100) / 100.0) + " KB";
+        }
+        else
+        {
+            return to_string((int)kb) + " KB";
+        }
+    }
+    else if (bytes < 1024 * 1024 * 1024)
+    {
+        double mb = bytes / (1024.0 * 1024.0);
+        if (mb < 100)
+        {
+            return to_string((int)(mb * 100) / 100.0) + " MB";
+        }
+        else
+        {
+            return to_string((int)mb) + " MB";
+        }
+    }
+    else
+    {
+        double gb = bytes / (1024.0 * 1024.0 * 1024.0);
+        return to_string((int)(gb * 100) / 100.0) + " GB";
+    }
+}
