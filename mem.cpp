@@ -159,3 +159,84 @@ void renderMemoryBars()
     ImGui::ProgressBar(disk_percentage / 100.0f, ImVec2(-1, 0));
     ImGui::PopStyleColor();
 }
+
+// Get process information from /proc/[pid]/
+Proc getProcessInfo(int pid)
+{
+    Proc proc = {};
+    proc.pid = pid;
+
+    // Read process name from /proc/[pid]/comm
+    string comm_path = "/proc/" + to_string(pid) + "/comm";
+    ifstream comm_file(comm_path);
+    if (comm_file.is_open())
+    {
+        getline(comm_file, proc.name);
+        // Remove newline if present
+        if (!proc.name.empty() && proc.name.back() == '\n')
+        {
+            proc.name.pop_back();
+        }
+    }
+
+    // Read process stats from /proc/[pid]/stat
+    string stat_path = "/proc/" + to_string(pid) + "/stat";
+    ifstream stat_file(stat_path);
+    if (stat_file.is_open())
+    {
+        string line;
+        getline(stat_file, line);
+
+        // Parse the stat line - be careful with process names containing spaces
+        istringstream iss(line);
+        string token;
+        vector<string> tokens;
+
+        // Split by spaces but handle the process name in parentheses
+        bool in_name = false;
+        string current_token;
+
+        for (char c : line)
+        {
+            if (c == '(')
+            {
+                in_name = true;
+                current_token += c;
+            }
+            else if (c == ')')
+            {
+                in_name = false;
+                current_token += c;
+                tokens.push_back(current_token);
+                current_token.clear();
+            }
+            else if (c == ' ' && !in_name)
+            {
+                if (!current_token.empty())
+                {
+                    tokens.push_back(current_token);
+                    current_token.clear();
+                }
+            }
+            else
+            {
+                current_token += c;
+            }
+        }
+        if (!current_token.empty())
+        {
+            tokens.push_back(current_token);
+        }
+
+        if (tokens.size() >= 24)
+        {
+            proc.state = tokens[2][0];      // State is the 3rd field
+            proc.utime = stoll(tokens[13]); // User time
+            proc.stime = stoll(tokens[14]); // System time
+            proc.vsize = stoll(tokens[22]); // Virtual memory size
+            proc.rss = stoll(tokens[23]);   // Resident set size
+        }
+    }
+
+    return proc;
+}
