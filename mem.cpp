@@ -102,3 +102,60 @@ ImVec4 getUsageColor(float percentage)
         return ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // Red
     }
 }
+
+// Render memory usage bars
+void renderMemoryBars()
+{
+    MemoryInfo mem_info = getMemoryInfo();
+
+    // RAM Usage
+    float ram_percentage = calculateMemoryUsage(mem_info.used_ram, mem_info.total_ram);
+    ImGui::Text("RAM Usage:");
+    ImGui::SameLine();
+    ImGui::Text("%.1f%% (%s / %s)",
+                ram_percentage,
+                formatBytes(mem_info.used_ram).c_str(),
+                formatBytes(mem_info.total_ram).c_str());
+
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, getUsageColor(ram_percentage));
+    ImGui::ProgressBar(ram_percentage / 100.0f, ImVec2(-1, 0));
+    ImGui::PopStyleColor();
+
+    ImGui::Separator();
+
+    // SWAP Usage
+    if (mem_info.total_swap > 0)
+    {
+        float swap_percentage = calculateMemoryUsage(mem_info.used_swap, mem_info.total_swap);
+        ImGui::Text("SWAP Usage:");
+        ImGui::SameLine();
+        ImGui::Text("%.1f%% (%s / %s)",
+                    swap_percentage,
+                    formatBytes(mem_info.used_swap).c_str(),
+                    formatBytes(mem_info.total_swap).c_str());
+
+        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, getUsageColor(swap_percentage));
+        ImGui::ProgressBar(swap_percentage / 100.0f, ImVec2(-1, 0));
+        ImGui::PopStyleColor();
+    }
+    else
+    {
+        ImGui::Text("SWAP Usage: Not available");
+        ImGui::ProgressBar(0.0f, ImVec2(-1, 0));
+    }
+
+    ImGui::Separator();
+
+    // Disk Usage
+    float disk_percentage = calculateMemoryUsage(mem_info.used_disk, mem_info.total_disk);
+    ImGui::Text("Disk Usage (/):");
+    ImGui::SameLine();
+    ImGui::Text("%.1f%% (%s / %s)",
+                disk_percentage,
+                formatBytes(mem_info.used_disk).c_str(),
+                formatBytes(mem_info.total_disk).c_str());
+
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, getUsageColor(disk_percentage));
+    ImGui::ProgressBar(disk_percentage / 100.0f, ImVec2(-1, 0));
+    ImGui::PopStyleColor();
+}
