@@ -324,3 +324,33 @@ void renderRXUsageBars()
         ImGui::PopStyleColor();
     }
 }
+
+// Render network usage bars for TX
+void renderTXUsageBars()
+{
+    if (!network_data_ready)
+        return;
+
+    lock_guard<mutex> lock(network_mutex);
+
+    ImGui::Text("TX (Outgoing) Network Usage:");
+    ImGui::Separator();
+
+    for (const auto &pair : current_tx_stats)
+    {
+        const string &interface = pair.first;
+        const TX &stats = pair.second;
+
+        float progress = calculateNetworkProgress(stats.bytes);
+        string usage_text = formatNetworkBytes(stats.bytes) + " / 2GB";
+
+        ImGui::Text("%s", interface.c_str());
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(-1);
+
+        // Use blue color for TX (outgoing)
+        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.2f, 0.2f, 0.8f, 1.0f));
+        ImGui::ProgressBar(progress, ImVec2(0.0f, 0.0f), usage_text.c_str());
+        ImGui::PopStyleColor();
+    }
+}
