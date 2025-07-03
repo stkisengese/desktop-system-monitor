@@ -330,15 +330,18 @@ void renderProcessTable(vector<Proc> &processes)
                           ImGuiTableFlags_Sortable |
                               ImGuiTableFlags_Resizable |
                               ImGuiTableFlags_ScrollY |
-                              ImGuiTableFlags_RowBg))
+                              ImGuiTableFlags_RowBg |
+                              ImGuiTableFlags_BordersOuter |
+                              ImGuiTableFlags_BordersV))
     {
 
         // Setup columns
-        ImGui::TableSetupColumn("PID", ImGuiTableColumnFlags_DefaultSort, 60.0f, 0);
+        ImGui::TableSetupColumn("PID", ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthFixed, 80.0f, 0);
         ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None, 150.0f, 1);
-        ImGui::TableSetupColumn("State", ImGuiTableColumnFlags_None, 100.0f, 2);
-        ImGui::TableSetupColumn("CPU %", ImGuiTableColumnFlags_None, 80.0f, 3);
-        ImGui::TableSetupColumn("Memory %", ImGuiTableColumnFlags_None, 100.0f, 4);
+        ImGui::TableSetupColumn("State", ImGuiTableColumnFlags_None | ImGuiTableColumnFlags_WidthFixed, 100.0f, 2);
+        ImGui::TableSetupColumn("CPU %", ImGuiTableColumnFlags_None | ImGuiTableColumnFlags_WidthFixed, 80.0f, 3);
+        ImGui::TableSetupColumn("Memory %", ImGuiTableColumnFlags_None | ImGuiTableColumnFlags_WidthFixed, 100.0f, 4);
+        ImGui::TableSetupScrollFreeze(0, 1); // Freeze header row
         ImGui::TableHeadersRow();
 
         // Handle sorting
