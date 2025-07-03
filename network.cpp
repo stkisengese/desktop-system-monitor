@@ -243,3 +243,54 @@ void renderRXTable()
         ImGui::EndTable();
     }
 }
+
+// Render TX statistics table
+void renderTXTable()
+{
+    if (!network_data_ready)
+        return;
+
+    lock_guard<mutex> lock(network_mutex);
+
+    if (ImGui::BeginTable("TX_Table", 9, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY))
+    {
+        ImGui::TableSetupColumn("Interface");
+        ImGui::TableSetupColumn("Bytes");
+        ImGui::TableSetupColumn("Packets");
+        ImGui::TableSetupColumn("Errs");
+        ImGui::TableSetupColumn("Drop");
+        ImGui::TableSetupColumn("Fifo");
+        ImGui::TableSetupColumn("Colls");
+        ImGui::TableSetupColumn("Carrier");
+        ImGui::TableSetupColumn("Compressed");
+        ImGui::TableHeadersRow();
+
+        for (const auto &pair : current_tx_stats)
+        {
+            const string &interface = pair.first;
+            const TX &stats = pair.second;
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("%s", interface.c_str());
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%s", formatNetworkBytes(stats.bytes).c_str());
+            ImGui::TableSetColumnIndex(2);
+            ImGui::Text("%d", stats.packets);
+            ImGui::TableSetColumnIndex(3);
+            ImGui::Text("%d", stats.errs);
+            ImGui::TableSetColumnIndex(4);
+            ImGui::Text("%d", stats.drop);
+            ImGui::TableSetColumnIndex(5);
+            ImGui::Text("%d", stats.fifo);
+            ImGui::TableSetColumnIndex(6);
+            ImGui::Text("%d", stats.colls);
+            ImGui::TableSetColumnIndex(7);
+            ImGui::Text("%d", stats.carrier);
+            ImGui::TableSetColumnIndex(8);
+            ImGui::Text("%d", stats.compressed);
+        }
+
+        ImGui::EndTable();
+    }
+}
