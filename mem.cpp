@@ -187,54 +187,43 @@ Proc getProcessInfo(int pid)
         string line;
         getline(stat_file, line);
 
-        // Parse the stat line - be careful with process names containing spaces
-        istringstream iss(line);
-        string token;
-        vector<string> tokens;
+        // Parse the stat line
+        size_t first_paren = line.find('(');
+        size_t last_paren = line.rfind(')');
 
-        // Split by spaces but handle the process name in parentheses
-        bool in_name = false;
-        string current_token;
+        if (first_paren != string::npos && last_paren != string::npos && last_paren > first_paren)
+        {
+            // Extract PID (before first parenthesis)
+            string pid_str = line.substr(0, first_paren);
+            proc.pid = stoi(pid_str);
 
-        for (char c : line)
-        {
-            if (c == '(')
+            // Extract process name (between parentheses) - this might be truncated
+            string full_name = line.substr(first_paren + 1, last_paren - first_paren - 1);
+            if (proc.name.empty())
             {
-                in_name = true;
-                current_token += c;
+                proc.name = full_name;
             }
-            else if (c == ')')
-            {
-                in_name = false;
-                current_token += c;
-                tokens.push_back(current_token);
-                current_token.clear();
-            }
-            else if (c == ' ' && !in_name)
-            {
-                if (!current_token.empty())
-                {
-                    tokens.push_back(current_token);
-                    current_token.clear();
-                }
-            }
-            else
-            {
-                current_token += c;
-            }
-        }
-        if (!current_token.empty())
-        {
-            tokens.push_back(current_token);
-        }
 
-        if (tokens.size() >= 24)
-        {
-            proc.state = tokens[2][0];      // State is the 3rd field
-            proc.utime = stoll(tokens[13]); // User time
-            proc.stime = stoll(tokens[14]); // System time
-            proc.vsize = stoll(tokens[22]); // Virtual memory size
-            proc.rss = stoll(tokens[23]);   // Resident set size
+            // Extract remaining fields after last parenthesis
+            string remaining = line.substr(last_paren + 1);
+            istringstream iss(remaining);
+            vector<string> fields;
+            string field;
+
+            while (iss >> field)
+            {
+                fields.push_back(field);
+            }
+
+            // Map fields according to /proc/[pid]/stat format
+            if (fields.size() >= 22)
+            {
+                proc.state = fields[0][0];      // State (field 3)
+                proc.utime = stoll(fields[11]); // User time (field 14)
+                proc.stime = stoll(fields[12]); // System time (field 15)
+                proc.vsize = stoll(fields[20]); // Virtual memory size (field 23)
+                proc.rss = stoll(fields[21]);   // Resident set size (field 24)
+            }
         }
     }
 
