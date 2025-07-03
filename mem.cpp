@@ -85,3 +85,20 @@ string formatBytes(unsigned long bytes)
     ss << size << " " << units[unit_index];
     return ss.str();
 }
+
+// Get color based on usage percentage
+ImVec4 getUsageColor(float percentage)
+{
+    if (percentage < 70.0f)
+    {
+        return ImVec4(0.0f, 0.8f, 0.0f, 1.0f); // Green
+    }
+    else if (percentage < 90.0f)
+    {
+        return ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
+    }
+    else
+    {
+        return ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // Red
+    }
+}
