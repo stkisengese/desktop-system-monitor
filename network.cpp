@@ -168,3 +168,27 @@ float calculateNetworkProgress(uint64_t bytes)
         return 1.0f;
     return (float)bytes / (float)max_scale;
 }
+
+// Render network interfaces list
+void renderNetworkInterfaces()
+{
+    if (ImGui::CollapsingHeader("Network Interfaces"))
+    {
+        ImGui::Columns(2, "NetworkInterfaces", true);
+        ImGui::Text("Interface");
+        ImGui::NextColumn();
+        ImGui::Text("IPv4 Address");
+        ImGui::NextColumn();
+        ImGui::Separator();
+
+        for (const auto &ip4 : current_networks.ip4s)
+        {
+            ImGui::Text("%s", ip4.name);
+            ImGui::NextColumn();
+            ImGui::Text("%s", ip4.addressBuffer);
+            ImGui::NextColumn();
+        }
+
+        ImGui::Columns(1);
+    }
+}
