@@ -58,3 +58,30 @@ float calculateMemoryUsage(unsigned long used, unsigned long total)
         return 0.0f;
     return (float(used) / float(total)) * 100.0f;
 }
+
+// Format bytes to human-readable format
+string formatBytes(unsigned long bytes)
+{
+    const char *units[] = {"B", "KB", "MB", "GB", "TB"};
+    int unit_index = 0;
+    double size = bytes;
+
+    while (size >= 1024.0 && unit_index < 4)
+    {
+        size /= 1024.0;
+        unit_index++;
+    }
+
+    stringstream ss;
+    ss << fixed;
+    if (unit_index == 0)
+    {
+        ss.precision(0);
+    }
+    else
+    {
+        ss.precision(1);
+    }
+    ss << size << " " << units[unit_index];
+    return ss.str();
+}
