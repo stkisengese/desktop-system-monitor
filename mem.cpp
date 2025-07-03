@@ -282,3 +282,147 @@ vector<Proc> getAllProcesses()
     closedir(proc_dir);
     return processes;
 }
+
+// Render process table
+void renderProcessTable(vector<Proc> &processes)
+{
+    MemoryInfo mem_info = getMemoryInfo();
+
+    // Filter input
+    ImGui::Text("Filter processes:");
+    ImGui::SameLine();
+    bool filter_changed = ImGui::InputText("##ProcessFilter", process_filter, sizeof(process_filter));
+
+    // Filter processes
+    vector<Proc> filtered_processes = filterProcesses(processes, string(process_filter));
+
+    // Show count
+    ImGui::Text("Processes: %zu (Selected: %zu)", filtered_processes.size(), selected_pids.size());
+
+    // Process table
+    if (ImGui::BeginTable("ProcessTable", 5,
+                          ImGuiTableFlags_Sortable |
+                              ImGuiTableFlags_Resizable |
+                              ImGuiTableFlags_ScrollY |
+                              ImGuiTableFlags_RowBg))
+    {
+
+        // Setup columns
+        ImGui::TableSetupColumn("PID", ImGuiTableColumnFlags_DefaultSort, 60.0f, 0);
+        ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None, 150.0f, 1);
+        ImGui::TableSetupColumn("State", ImGuiTableColumnFlags_None, 100.0f, 2);
+        ImGui::TableSetupColumn("CPU %", ImGuiTableColumnFlags_None, 80.0f, 3);
+        ImGui::TableSetupColumn("Memory %", ImGuiTableColumnFlags_None, 100.0f, 4);
+        ImGui::TableHeadersRow();
+
+        // Handle sorting
+        ImGuiTableSortSpecs *sort_specs = ImGui::TableGetSortSpecs();
+        if (sort_specs && sort_specs->SpecsDirty)
+        {
+            if (sort_specs->SpecsCount > 0)
+            {
+                const ImGuiTableColumnSortSpecs *spec = &sort_specs->Specs[0];
+
+                sort(filtered_processes.begin(), filtered_processes.end(),
+                     [spec, &mem_info](const Proc &a, const Proc &b)
+                     {
+                         bool ascending = spec->SortDirection == ImGuiSortDirection_Ascending;
+
+                         switch (spec->ColumnUserID)
+                         {
+                         case 0: // PID
+                             return ascending ? a.pid < b.pid : a.pid > b.pid;
+                         case 1: // Name
+                             return ascending ? a.name < b.name : a.name > b.name;
+                         case 2: // State
+                             return ascending ? a.state < b.state : a.state > b.state;
+                         case 3: // CPU % (placeholder)
+                             return ascending ? calculateProcessCPU(a) < calculateProcessCPU(b)
+                                              : calculateProcessCPU(a) > calculateProcessCPU(b);
+                         case 4: // Memory %
+                             return ascending ? calculateProcessMemory(a, mem_info.total_ram) < calculateProcessMemory(b, mem_info.total_ram)
+                                              : calculateProcessMemory(a, mem_info.total_ram) > calculateProcessMemory(b, mem_info.total_ram);
+                         default:
+                             return false;
+                         }
+                     });
+            }
+            sort_specs->SpecsDirty = false;
+        }
+
+        // Render rows
+        for (const auto &proc : filtered_processes)
+        {
+            ImGui::TableNextRow();
+
+            // PID column
+            ImGui::TableSetColumnIndex(0);
+            bool is_selected = selected_pids.find(proc.pid) != selected_pids.end();
+
+            if (ImGui::Selectable(to_string(proc.pid).c_str(), is_selected,
+                                  ImGuiSelectableFlags_SpanAllColumns))
+            {
+                // Handle selection with Ctrl+Click for multi-select
+                ImGuiIO &io = ImGui::GetIO();
+                if (io.KeyCtrl)
+                {
+                    if (is_selected)
+                    {
+                        selected_pids.erase(proc.pid);
+                    }
+                    else
+                    {
+                        selected_pids.insert(proc.pid);
+                    }
+                }
+                else
+                {
+                    selected_pids.clear();
+                    selected_pids.insert(proc.pid);
+                }
+            }
+
+            // Name column
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%s", proc.name.c_str());
+
+            // State column
+            ImGui::TableSetColumnIndex(2);
+            string state_str;
+            switch (proc.state)
+            {
+            case 'R':
+                state_str = "Running";
+                break;
+            case 'S':
+                state_str = "Sleeping";
+                break;
+            case 'D':
+                state_str = "Disk Sleep";
+                break;
+            case 'Z':
+                state_str = "Zombie";
+                break;
+            case 'T':
+                state_str = "Stopped";
+                break;
+            default:
+                state_str = string(1, proc.state);
+                break;
+            }
+            ImGui::Text("%s", state_str.c_str());
+
+            // CPU % column
+            ImGui::TableSetColumnIndex(3);
+            float cpu_usage = calculateProcessCPU(proc);
+            ImGui::Text("%.1f%%", cpu_usage);
+
+            // Memory % column
+            ImGui::TableSetColumnIndex(4);
+            float memory_usage = calculateProcessMemory(proc, mem_info.total_ram);
+            ImGui::Text("%.1f%%", memory_usage);
+        }
+
+        ImGui::EndTable();
+    }
+}
