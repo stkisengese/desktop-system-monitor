@@ -139,6 +139,20 @@ void memoryProcessesWindow(const char *id, ImVec2 size, ImVec2 position)
     ImGui::SetWindowSize(id, size);
     ImGui::SetWindowPos(id, position);
 
+    static vector<Proc> cached_processes;
+    static chrono::steady_clock::time_point last_update;
+    static bool processes_need_update = true;
+
+    // Check if we need to update process list (every 3 seconds)
+    auto now = chrono::steady_clock::now();
+    if (processes_need_update ||
+        chrono::duration_cast<chrono::seconds>(now - last_update).count() >= 3)
+    {
+        cached_processes = getAllProcesses();
+        last_update = now;
+        processes_need_update = false;
+    }
+
     // Memory usage section
     if (ImGui::CollapsingHeader("Memory Usage", ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -146,6 +160,12 @@ void memoryProcessesWindow(const char *id, ImVec2 size, ImVec2 position)
     }
 
     ImGui::Separator();
+
+    // Process table section
+    if (ImGui::CollapsingHeader("Process Table", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        renderProcessTable(cached_processes);
+    }
 
     ImGui::End();
 }
