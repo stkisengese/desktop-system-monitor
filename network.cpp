@@ -159,3 +159,12 @@ string formatNetworkBytes(uint64_t bytes)
         return to_string((int)(gb * 100) / 100.0) + " GB";
     }
 }
+
+// Calculate progress for 2GB scale (0.0 to 1.0)
+float calculateNetworkProgress(uint64_t bytes)
+{
+    const uint64_t max_scale = 2ULL * 1024 * 1024 * 1024; // 2GB
+    if (bytes >= max_scale)
+        return 1.0f;
+    return (float)bytes / (float)max_scale;
+}
