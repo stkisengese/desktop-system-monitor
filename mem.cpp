@@ -272,42 +272,54 @@ vector<Proc> getAllProcesses()
     return processes;
 }
 
-// Global variables for CPU usage tracking
-static map<int, pair<long long, chrono::steady_clock::time_point>> cpu_usage_cache;
-
-// Calculate process CPU usage (improved implementation)
-float calculateProcessCPU(const Proc &proc)
+// Function to update all process CPU data periodically
+void updateProcessCPUData()
 {
     auto now = chrono::steady_clock::now();
-    long long total_time = proc.utime + proc.stime;
 
-    // Check if we have previous data for this process
-    auto it = cpu_usage_cache.find(proc.pid);
-    if (it != cpu_usage_cache.end())
+    // Update only every second
+    if (chrono::duration_cast<chrono::milliseconds>(now - last_process_update).count() < 3000)
     {
-        auto [prev_total_time, prev_time] = it->second;
+        return;
+    }
 
-        // Calculate time differences
-        auto time_diff = chrono::duration_cast<chrono::milliseconds>(now - prev_time);
-        long long cpu_time_diff = total_time - prev_total_time;
+    vector<Proc> current_processes = getAllProcesses();
+    lock_guard<mutex> lock(process_cpu_mutex);
+    for (const auto &proc : current_processes)
+    {
+        long long current_total = proc.utime + proc.stime;
 
-        // Calculate CPU usage percentage
-        if (time_diff.count() > 0)
+        auto it = process_cpu_data.find(proc.pid);
+        if (it != process_cpu_data.end())
         {
-            // Convert from clock ticks to percentage
-            // Assuming 100 Hz clock (typical for most systems)
-            float cpu_percent = (cpu_time_diff * 100.0f) / (time_diff.count() / 10.0f);
-            cpu_percent = min(cpu_percent, 100.0f); // Cap at 100%
+            // Calculate CPU usage
+            long long prev_total = it->second.prev_utime + it->second.prev_stime;
+            long long cpu_diff = current_total - prev_total;
 
-            // Update cache
-            cpu_usage_cache[proc.pid] = {total_time, now};
-            return cpu_percent;
+            // Calculate percentage based on time difference
+            auto time_diff = chrono::duration_cast<chrono::milliseconds>(now - it->second.last_update);
+            if (time_diff.count() > 0)
+            {
+                // Convert CPU ticks to percentage
+                // sysconf(_SC_CLK_TCK) gives ticks per second
+                double time_sec = time_diff.count() / 1000.0;
+                double cpu_percent = (cpu_diff / time_sec) / sysconf(_SC_CLK_TCK) * 100.0;
+
+                // Update data
+                it->second.prev_utime = proc.utime;
+                it->second.prev_stime = proc.stime;
+                it->second.cpu_percent = min(cpu_percent, 100.0);
+                it->second.last_update = now;
+            }
+        }
+        else
+        {
+            // First time seeing this process
+            process_cpu_data[proc.pid] = {proc.utime, proc.stime, 0.0f, now};
         }
     }
 
-    // First time seeing this process or no time difference
-    cpu_usage_cache[proc.pid] = {total_time, now};
-    return 0.0f;
+    last_process_update = now;
 }
 
 // Calculate process memory usage percentage
