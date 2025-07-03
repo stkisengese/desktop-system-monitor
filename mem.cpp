@@ -283,6 +283,32 @@ vector<Proc> getAllProcesses()
     return processes;
 }
 
+// Filter processes by name
+vector<Proc> filterProcesses(const vector<Proc> &processes, const string &filter)
+{
+    if (filter.empty())
+    {
+        return processes;
+    }
+
+    vector<Proc> filtered;
+    string lower_filter = filter;
+    transform(lower_filter.begin(), lower_filter.end(), lower_filter.begin(), ::tolower);
+
+    for (const auto &proc : processes)
+    {
+        string lower_name = proc.name;
+        transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
+
+        if (lower_name.find(lower_filter) != string::npos)
+        {
+            filtered.push_back(proc);
+        }
+    }
+
+    return filtered;
+}
+
 // Render process table
 void renderProcessTable(vector<Proc> &processes)
 {
