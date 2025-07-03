@@ -294,3 +294,33 @@ void renderTXTable()
         ImGui::EndTable();
     }
 }
+
+// Render network usage bars for RX
+void renderRXUsageBars()
+{
+    if (!network_data_ready)
+        return;
+
+    lock_guard<mutex> lock(network_mutex);
+
+    ImGui::Text("RX (Incoming) Network Usage:");
+    ImGui::Separator();
+
+    for (const auto &pair : current_rx_stats)
+    {
+        const string &interface = pair.first;
+        const RX &stats = pair.second;
+
+        float progress = calculateNetworkProgress(stats.bytes);
+        string usage_text = formatNetworkBytes(stats.bytes) + " / 2GB";
+
+        ImGui::Text("%s", interface.c_str());
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(-1);
+
+        // Use green color for RX (incoming)
+        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.2f, 0.8f, 0.2f, 1.0f));
+        ImGui::ProgressBar(progress, ImVec2(0.0f, 0.0f), usage_text.c_str());
+        ImGui::PopStyleColor();
+    }
+}
