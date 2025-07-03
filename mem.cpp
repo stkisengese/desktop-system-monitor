@@ -240,3 +240,45 @@ Proc getProcessInfo(int pid)
 
     return proc;
 }
+
+// Get all running processes
+vector<Proc> getAllProcesses()
+{
+    vector<Proc> processes;
+
+    DIR *proc_dir = opendir("/proc");
+    if (proc_dir == nullptr)
+    {
+        return processes;
+    }
+
+    struct dirent *entry;
+    while ((entry = readdir(proc_dir)) != nullptr)
+    {
+        // Check if directory name is numeric (PID)
+        if (entry->d_type == DT_DIR)
+        {
+            string dir_name = entry->d_name;
+            if (all_of(dir_name.begin(), dir_name.end(), ::isdigit))
+            {
+                int pid = stoi(dir_name);
+                try
+                {
+                    Proc proc = getProcessInfo(pid);
+                    if (!proc.name.empty())
+                    {
+                        processes.push_back(proc);
+                    }
+                }
+                catch (...)
+                {
+                    // Process might have disappeared, skip it
+                    continue;
+                }
+            }
+        }
+    }
+
+    closedir(proc_dir);
+    return processes;
+}
