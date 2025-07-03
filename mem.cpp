@@ -349,7 +349,19 @@ vector<Proc> filterProcesses(const vector<Proc> &processes, const string &filter
 // Handle process selection
 void handleProcessSelection()
 {
-    // Currently we just show selcted accounts as highlighted
+    // Currently we just show selected accounts as highlighted
+}
+
+// Get CPU usage for a process from cached data
+float getProcessCPUUsage(int pid)
+{
+    lock_guard<mutex> lock(process_cpu_mutex);
+    auto it = process_cpu_data.find(pid);
+    if (it != process_cpu_data.end())
+    {
+        return it->second.cpu_percent;
+    }
+    return 0.0f;
 }
 
 // Render process table
