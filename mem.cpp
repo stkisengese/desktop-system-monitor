@@ -374,7 +374,7 @@ void renderProcessTable(vector<Proc> &processes)
                              return ascending ? a.name < b.name : a.name > b.name;
                          case 2: // State
                              return ascending ? a.state < b.state : a.state > b.state;
-                         case 3: // CPU % (placeholder)
+                         case 3: // CPU %
                              return ascending ? calculateProcessCPU(a) < calculateProcessCPU(b)
                                               : calculateProcessCPU(a) > calculateProcessCPU(b);
                          case 4: // Memory %
@@ -392,12 +392,9 @@ void renderProcessTable(vector<Proc> &processes)
         for (const auto &proc : filtered_processes)
         {
             ImGui::TableNextRow();
-
-            // PID column
-            ImGui::TableSetColumnIndex(0);
-            bool is_selected = selected_pids.find(proc.pid) != selected_pids.end();
-
-            if (ImGui::Selectable(to_string(proc.pid).c_str(), is_selected,
+            bool is_selected = selected_pids.find(proc.pid) != selected_pids.end(); // Check if this process is selected
+            ImGui::TableSetColumnIndex(0);                                          // PID column with selectable
+            if (ImGui::Selectable(("##" + to_string(proc.pid)).c_str(), is_selected,
                                   ImGuiSelectableFlags_SpanAllColumns))
             {
                 // Handle selection with Ctrl+Click for multi-select
@@ -419,6 +416,10 @@ void renderProcessTable(vector<Proc> &processes)
                     selected_pids.insert(proc.pid);
                 }
             }
+
+            // Display PID in the same cell
+            ImGui::SameLine();
+            ImGui::Text("%d", proc.pid);
 
             // Name column
             ImGui::TableSetColumnIndex(1);
