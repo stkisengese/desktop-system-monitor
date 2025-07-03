@@ -324,6 +324,15 @@ void renderProcessTable(vector<Proc> &processes)
 
     // Show count
     ImGui::Text("Processes: %zu (Selected: %zu)", filtered_processes.size(), selected_pids.size());
+    // Clear selection button
+    ImGui::SameLine();
+    if (ImGui::Button("Clear Selection"))
+    {
+        selected_pids.clear();
+    }
+
+    // Instructions
+    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Tip: Ctrl+Click to select multiple processes, Click column headers to sort");
 
     // Process table
     if (ImGui::BeginTable("ProcessTable", 5,
