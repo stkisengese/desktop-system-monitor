@@ -81,7 +81,7 @@ struct Networks
     vector<IP4> ip4s;
 };
 
-struct TX
+struct RX
 {
     int bytes;
     int packets;
@@ -93,7 +93,7 @@ struct TX
     int multicast;
 };
 
-struct RX
+struct TX
 {
     int bytes;
     int packets;
@@ -208,6 +208,22 @@ vector<Proc> filterProcesses(const vector<Proc> &processes, const string &filter
 void handleProcessSelection();
 void renderProcessTable(vector<Proc> &processes);
 void updateProcessCPUData();
+
+// Network Functions
+Networks getNetworkInterfaces();
+void parseNetworkDevFile();
+string formatNetworkBytes(uint64_t bytes);
+float calculateNetworkProgress(uint64_t bytes);
+
+// Network Rendering Functions
+void renderNetworkInterfaces();
+void renderRXTable();
+void renderTXTable();
+void renderRXUsageBars();
+void renderTXUsageBars();
+
+// Network window function signature
+void networkWindow(const char *id, ImVec2 size, ImVec2 position);
 
 // Updated system window function signature
 void systemWindow(const char *id, ImVec2 size, ImVec2 position);
