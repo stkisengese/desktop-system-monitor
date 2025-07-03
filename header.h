@@ -22,6 +22,7 @@
 #include <regex>
 #include <pwd.h>   // For getpwuid
 #include <fstream> // lib to read from file
+#include <set>     // For process selection
 // for the name of the computer and the logged in user
 #include <unistd.h>
 #include <limits.h>
@@ -195,7 +196,16 @@ void updateFanHistory();
 void renderFanGraph();
 void renderFanStatus();
 
+// Memory and Process Functions
+MemoryInfo getMemoryInfo();
+float calculateMemoryUsage(unsigned long used, unsigned long total);
+string formatBytes(unsigned long bytes);
+void renderMemoryBars();
+
 // Updated system window function signature
 void systemWindow(const char *id, ImVec2 size, ImVec2 position);
+
+// Memory and processes window function
+void memoryProcessesWindow(const char *id, ImVec2 size, ImVec2 position);
 
 #endif
