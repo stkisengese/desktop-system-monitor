@@ -1,8 +1,20 @@
 #include "header.h"
 
+// Struct for process CPU data tracking
+struct ProcessCPUData
+{
+    long long prev_utime;
+    long long prev_stime;
+    float cpu_percent;
+    chrono::steady_clock::time_point last_update;
+};
+
 // Global variables for process selection and filtering
 static set<int> selected_pids;
 static char process_filter[256] = "";
+static map<int, ProcessCPUData> process_cpu_data;
+static chrono::steady_clock::time_point last_process_update;
+static mutex process_cpu_mutex;
 
 // Memory information function
 MemoryInfo getMemoryInfo()
