@@ -171,14 +171,68 @@ void memoryProcessesWindow(const char *id, ImVec2 size, ImVec2 position)
     ImGui::End();
 }
 
-// network, display information network information
+// networkWindow function for displaying network information
 void networkWindow(const char *id, ImVec2 size, ImVec2 position)
 {
     ImGui::Begin(id);
     ImGui::SetWindowSize(id, size);
     ImGui::SetWindowPos(id, position);
 
-    // student TODO : add code here for the network information
+    // Update network data periodically
+    static auto last_update = chrono::steady_clock::now();
+    auto now = chrono::steady_clock::now();
+    auto elapsed = chrono::duration_cast<chrono::milliseconds>(now - last_update);
+
+    if (elapsed.count() > 2000)
+    { // Update every 2 seconds
+        thread([]()
+               {
+            parseNetworkDevFile();
+            getNetworkInterfaces(); })
+            .detach();
+        last_update = now;
+    }
+
+    // Display network interfaces
+    renderNetworkInterfaces();
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // Create tab bar for statistics and usage
+    if (ImGui::BeginTabBar("NetworkTabs"))
+    {
+        // RX Statistics Tab
+        if (ImGui::BeginTabItem("RX Statistics"))
+        {
+            renderRXTable();
+            ImGui::EndTabItem();
+        }
+
+        // TX Statistics Tab
+        if (ImGui::BeginTabItem("TX Statistics"))
+        {
+            renderTXTable();
+            ImGui::EndTabItem();
+        }
+
+        // RX Usage Visualization Tab
+        if (ImGui::BeginTabItem("RX Usage"))
+        {
+            renderRXUsageBars();
+            ImGui::EndTabItem();
+        }
+
+        // TX Usage Visualization Tab
+        if (ImGui::BeginTabItem("TX Usage"))
+        {
+            renderTXUsageBars();
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
+    }
 
     ImGui::End();
 }
