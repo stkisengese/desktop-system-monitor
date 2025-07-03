@@ -272,6 +272,44 @@ vector<Proc> getAllProcesses()
     return processes;
 }
 
+// Global variables for CPU usage tracking
+static map<int, pair<long long, chrono::steady_clock::time_point>> cpu_usage_cache;
+
+// Calculate process CPU usage (improved implementation)
+float calculateProcessCPU(const Proc &proc)
+{
+    auto now = chrono::steady_clock::now();
+    long long total_time = proc.utime + proc.stime;
+
+    // Check if we have previous data for this process
+    auto it = cpu_usage_cache.find(proc.pid);
+    if (it != cpu_usage_cache.end())
+    {
+        auto [prev_total_time, prev_time] = it->second;
+
+        // Calculate time differences
+        auto time_diff = chrono::duration_cast<chrono::milliseconds>(now - prev_time);
+        long long cpu_time_diff = total_time - prev_total_time;
+
+        // Calculate CPU usage percentage
+        if (time_diff.count() > 0)
+        {
+            // Convert from clock ticks to percentage
+            // Assuming 100 Hz clock (typical for most systems)
+            float cpu_percent = (cpu_time_diff * 100.0f) / (time_diff.count() / 10.0f);
+            cpu_percent = min(cpu_percent, 100.0f); // Cap at 100%
+
+            // Update cache
+            cpu_usage_cache[proc.pid] = {total_time, now};
+            return cpu_percent;
+        }
+    }
+
+    // First time seeing this process or no time difference
+    cpu_usage_cache[proc.pid] = {total_time, now};
+    return 0.0f;
+}
+
 // Calculate process memory usage percentage
 float calculateProcessMemory(const Proc &proc, unsigned long total_memory)
 {
