@@ -428,28 +428,38 @@ void renderProcessTable(vector<Proc> &processes)
             // State column
             ImGui::TableSetColumnIndex(2);
             string state_str;
+            ImVec4 state_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // Default white
             switch (proc.state)
             {
             case 'R':
                 state_str = "Running";
+                state_color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // Green
                 break;
             case 'S':
                 state_str = "Sleeping";
+                state_color = ImVec4(0.0f, 0.7f, 1.0f, 1.0f); // Blue
                 break;
             case 'D':
                 state_str = "Disk Sleep";
+                state_color = ImVec4(1.0f, 0.7f, 0.0f, 1.0f); // Orange
+                break;
+            case 'I':
+                state_str = "Idle";
+                state_color = ImVec4(1.0f, 0.0f, 1.0f, 1.0f); // Magenta
                 break;
             case 'Z':
                 state_str = "Zombie";
+                state_color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // Red
                 break;
             case 'T':
                 state_str = "Stopped";
+                state_color = ImVec4(0.7f, 0.7f, 0.7f, 1.0f); // Gray
                 break;
             default:
                 state_str = string(1, proc.state);
                 break;
             }
-            ImGui::Text("%s", state_str.c_str());
+            ImGui::TextColored(state_color, "%s", state_str.c_str());
 
             // CPU % column
             ImGui::TableSetColumnIndex(3);
