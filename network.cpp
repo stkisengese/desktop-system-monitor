@@ -84,3 +84,40 @@ void parseNetworkDevFile()
     file.close();
     network_data_ready = true;
 }
+
+// Get network interfaces with IPv4 addresses
+Networks getNetworkInterfaces()
+{
+    Networks networks;
+    networks.ip4s.clear();
+
+    struct ifaddrs *ifaddr, *ifa;
+    char addressBuffer[INET_ADDRSTRLEN];
+
+    if (getifaddrs(&ifaddr) == -1)
+    {
+        return networks;
+    }
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+    {
+        if (ifa->ifa_addr == NULL)
+            continue;
+
+        // Check for IPv4 addresses
+        if (ifa->ifa_addr->sa_family == AF_INET)
+        {
+            struct sockaddr_in *sa_in = (struct sockaddr_in *)ifa->ifa_addr;
+            inet_ntop(AF_INET, &(sa_in->sin_addr), addressBuffer, INET_ADDRSTRLEN);
+
+            IP4 ip4;
+            ip4.name = strdup(ifa->ifa_name);
+            strcpy(ip4.addressBuffer, addressBuffer);
+            networks.ip4s.push_back(ip4);
+        }
+    }
+
+    freeifaddrs(ifaddr);
+    current_networks = networks;
+    return networks;
+}
