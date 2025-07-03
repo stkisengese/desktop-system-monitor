@@ -164,6 +164,7 @@ void memoryProcessesWindow(const char *id, ImVec2 size, ImVec2 position)
     // Process table section
     if (ImGui::CollapsingHeader("Process Table", ImGuiTreeNodeFlags_DefaultOpen))
     {
+        updateProcessCPUData();
         renderProcessTable(cached_processes);
     }
 
