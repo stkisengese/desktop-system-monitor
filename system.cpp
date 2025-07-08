@@ -835,7 +835,8 @@ void renderFanGraph()
 
         ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
         ImVec2 canvas_size = ImGui::GetContentRegionAvail();
-        canvas_size.y = min(canvas_size.y, 200.0f);
+        canvas_size.y = max(min(canvas_size.y, 200.0f), 150.0f);
+        // canvas_size.y = min(canvas_size.y, 200.0f);
 
         // Convert int vector to float for plotting
         vector<float> plot_data;
