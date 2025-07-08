@@ -745,8 +745,12 @@ void renderFanStatus()
     ImGui::Text("Fan Status Information");
     ImGui::Separator();
 
-    // Fan status
+    // Fan status, speed, and PWM level on a single line
     bool is_active = fan_active.load();
+    int speed = current_fan_speed.load();
+    int level = current_fan_level.load();
+    float level_percent = (level / 255.0f) * 100.0f;
+
     ImGui::Text("Status: ");
     ImGui::SameLine();
     if (is_active)
@@ -758,21 +762,18 @@ void renderFanStatus()
         ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Inactive");
     }
 
-    // Fan speed
-    int speed = current_fan_speed.load();
-    ImGui::Text("Current Speed: %d RPM", speed);
+    ImGui::SameLine();
+    ImGui::Text("  |  Speed: %d RPM", speed);
 
-    // Fan level (PWM)
-    int level = current_fan_level.load();
-    float level_percent = (level / 255.0f) * 100.0f;
-    ImGui::Text("PWM Level: %d (%.1f%%)", level, level_percent);
+    ImGui::SameLine();
+    ImGui::Text("  |  PWM: %d (%.1f%%)", level, level_percent);
 
     // Speed indicator
-    if (speed > 3000)
+    if (speed > 4000)
     {
         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "High Speed");
     }
-    else if (speed > 1500)
+    else if (speed > 2500)
     {
         ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "Medium Speed");
     }
