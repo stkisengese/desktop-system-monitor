@@ -240,42 +240,6 @@ void networkWindow(const char *id, ImVec2 size, ImVec2 position)
 // Main code
 int main(int, char **)
 {
-    string hostname = getHostname();
-    cout << "Retrieved Hostname: " << hostname << endl;
-    cout << "Retrieved Username: " << getUsername() << endl;
-    cout << "CPU Model: " << CPUinfo() << endl;
-
-    CPUStats prev = getCurrentCPUStats();
-    std::this_thread::sleep_for(std::chrono::seconds(1)); // Wait 1 second
-    CPUStats curr = getCurrentCPUStats();
-    float usage = calculateCPUUsage(prev, curr);
-    cout << "\nCalculated CPU Usage: " << usage << "%" << endl;
-
-    cout << "\nCurrent CPU Stats:" << endl;
-    cout << "User: " << curr.user << endl;
-    cout << "Nice: " << curr.nice << endl;
-    cout << "System: " << curr.system << endl;
-    cout << "Idle: " << curr.idle << endl;
-
-    cout << "\nGetProcessCounts Map: " << endl;
-    auto counts = getProcessCounts();
-    for (const auto &[key, value] : counts)
-    {
-        cout << key << ": " << value << endl;
-    }
-
-    SystemInfo sysInfo = getSystemInfo();
-    cout << "\nOS: " << sysInfo.os_name << endl;
-    cout << "Hostname: " << sysInfo.hostname << endl;
-    cout << "Username: " << sysInfo.username << endl;
-    cout << "CPU Model: " << sysInfo.cpu_model << endl;
-    cout << "Processes: " << endl;
-    cout << "  Total: " << sysInfo.total_processes << endl;
-    cout << "  Running: " << sysInfo.running_processes << endl;
-    cout << "  Sleeping: " << sysInfo.sleeping_processes << endl;
-    cout << "  Zombie: " << sysInfo.zombie_processes << endl;
-    cout << "  Stopped: " << sysInfo.stopped_processes << endl;
-
     // Setup SDL
     // (Some versions of SDL before <2.0.10 appears to have performance/stalling issues on a minority of Windows systems,
     // depending on whether SDL_INIT_GAMECONTROLLER is enabled or disabled.. updating to latest version of SDL is recommended!)
