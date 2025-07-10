@@ -189,12 +189,10 @@ float calculateCPUUsage(CPUStats prev, CPUStats curr)
     return usage;
 }
 
-// Parse /proc/stat for process counts
+// Parse /proc/stat and /proc/*/stat for current process counts
 map<string, int> getProcessCounts()
 {
     map<string, int> counts;
-    ifstream file("/proc/stat");
-    string line;
 
     // Initialize counts
     counts["total"] = 0;
@@ -204,19 +202,15 @@ map<string, int> getProcessCounts()
     counts["zombie"] = 0;
     counts["stopped"] = 0;
 
+    // Get procs_running and procs_blocked from /proc/stat
+    ifstream file("/proc/stat");
+    string line;
+
     if (file.is_open())
     {
         while (getline(file, line))
         {
-            if (line.substr(0, 9) == "processes")
-            {
-                istringstream iss(line);
-                string label;
-                int total;
-                iss >> label >> total;
-                counts["total"] = total;
-            }
-            else if (line.substr(0, 13) == "procs_running")
+            if (line.substr(0, 13) == "procs_running")
             {
                 istringstream iss(line);
                 string label;
@@ -241,7 +235,7 @@ map<string, int> getProcessCounts()
         return counts;
     }
 
-    // Get more detailed process states by reading /proc/*/stat files
+    // Count all processes by reading /proc/*/stat files
     DIR *proc_dir = opendir("/proc");
     if (proc_dir != nullptr)
     {
@@ -270,18 +264,22 @@ map<string, int> getProcessCounts()
                         char state;
                         iss >> state; // Process state
 
+                        counts["total"]++; // Count every process we find
+
                         switch (state)
                         {
-                        case 'S': // Sleeping
-                        case 'D': // Uninterruptible sleep
+                        case 'S': // Interruptible sleep
+                        case 'D': // Uninterruptible sleep (blocked)
                             counts["sleeping"]++;
                             break;
                         case 'Z': // Zombie
                             counts["zombie"]++;
                             break;
-                        case 'T': // Stopped
+                        case 'T': // Stopped (signal)
                         case 't': // Tracing stop
                             counts["stopped"]++;
+                            break;
+                        case 'R': // Running
                             break;
                         }
                     }
