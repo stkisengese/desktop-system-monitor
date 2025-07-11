@@ -367,15 +367,15 @@ void renderCPUGraph()
 
     // FPS control slider
     ImGui::Text("FPS:");
-    ImGui::SetNextItemWidth(120);
+    ImGui::SetNextItemWidth(300);
     ImGui::SliderFloat("##cpu_fps", &graph_fps, 1.0f, 30.0f, "%.0f");
 
     ImGui::NextColumn();
 
     // Y-axis scale control slider
     ImGui::Text("Y-Scale:");
-    ImGui::SetNextItemWidth(120);
-    ImGui::SliderFloat("##cpu_scale", &graph_scale, 100.0f, 200.0f, "%.0f%%");
+    ImGui::SetNextItemWidth(300);
+    ImGui::SliderFloat("##cpu_scale", &graph_scale, 60.0f, 200.0f, "%.0f%%");
 
     ImGui::Columns(1);
     ImGui::Spacing();
@@ -537,14 +537,14 @@ void renderThermalGraph()
 
     // FPS control slider
     ImGui::Text("FPS:");
-    ImGui::SetNextItemWidth(120);
+    ImGui::SetNextItemWidth(300);
     ImGui::SliderFloat("##thermal_fps", &thermal_fps, 1.0f, 30.0f, "%.0f");
 
     ImGui::NextColumn();
 
     // Y-axis scale control slider
     ImGui::Text("Y-Scale:");
-    ImGui::SetNextItemWidth(120);
+    ImGui::SetNextItemWidth(300);
     ImGui::SliderFloat("##thermal_scale", &thermal_scale, 60.0f, 120.0f, "%.0f°C");
 
     ImGui::Columns(1);
@@ -813,14 +813,14 @@ void renderFanGraph()
 
     // FPS control slider
     ImGui::Text("FPS:");
-    ImGui::SetNextItemWidth(120);
+    ImGui::SetNextItemWidth(300);
     ImGui::SliderFloat("##fan_fps", &fan_fps, 1.0f, 30.0f, "%.0f");
 
     ImGui::NextColumn();
 
     // Y-axis scale control slider
     ImGui::Text("Y-Scale:");
-    ImGui::SetNextItemWidth(120);
+    ImGui::SetNextItemWidth(300);
     ImGui::SliderFloat("##fan_scale", &fan_scale, 2000.0f, 8000.0f, "%.0f RPM");
 
     ImGui::Columns(1);
