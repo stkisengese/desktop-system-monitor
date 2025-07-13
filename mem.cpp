@@ -1,5 +1,5 @@
 /**
- * @file system_monitor.cpp
+ * @file mem.cpp
  * @brief System monitoring application with process management and memory tracking
  * @details This file implements a system monitor that displays real-time information about
  *          system memory (RAM, SWAP, disk usage) and running processes. It uses ImGui for
@@ -12,9 +12,9 @@
  * - Sortable process table
  * - Color-coded usage indicators
  * 
- * @author System Monitor Team
+ * @author Stephen Kisengese
  * @version 1.0
- * @date 2024
+ * @date 2025
  */
 
 #include "header.h"
