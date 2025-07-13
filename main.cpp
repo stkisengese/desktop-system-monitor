@@ -193,41 +193,125 @@ void networkWindow(const char *id, ImVec2 size, ImVec2 position)
         last_update = now;
     }
 
-    // Display network interfaces
+    // Header section with network interfaces overview
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.8f, 1.0f, 1.0f));
+    ImGui::Text("Network Interfaces");
+    ImGui::PopStyleColor();
+    ImGui::Separator();
     renderNetworkInterfaces();
 
     ImGui::Spacing();
-    ImGui::Separator();
     ImGui::Spacing();
 
-    // Create tab bar for statistics and usage
-    if (ImGui::BeginTabBar("NetworkTabs"))
+    // Main content area with improved tab organization
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.9f, 0.6f, 1.0f));
+    ImGui::Text("Network Statistics & Usage");
+    ImGui::PopStyleColor();
+    ImGui::Separator();
+
+    // Create main tab bar with clearer organization
+    if (ImGui::BeginTabBar("NetworkMainTabs", ImGuiTabBarFlags_None))
     {
-        // RX Statistics Tab
-        if (ImGui::BeginTabItem("RX Statistics"))
+        // Statistics Tab (combines RX and TX tables)
+        if (ImGui::BeginTabItem("Network Statistics"))
         {
-            renderRXTable();
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+            ImGui::Text("Detailed packet and error statistics for all network interfaces");
+            ImGui::PopStyleColor();
+            ImGui::Spacing();
+            
+            // Sub-tabs for RX and TX statistics
+            if (ImGui::BeginTabBar("StatisticsTabs", ImGuiTabBarFlags_Reorderable))
+            {
+                if (ImGui::BeginTabItem("RX (Received)"))
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.9f, 0.7f, 1.0f));
+                    ImGui::Text("Receive Statistics");
+                    ImGui::PopStyleColor();
+                    ImGui::Text("Bytes, Packets, Errors, Drops, FIFO, Frame, Compressed, Multicast");
+                    ImGui::Spacing();
+                    renderRXTable();
+                    ImGui::EndTabItem();
+                }
+
+                if (ImGui::BeginTabItem("TX (Transmitted)"))
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.7f, 0.7f, 1.0f));
+                    ImGui::Text("Transmit Statistics");
+                    ImGui::PopStyleColor();
+                    ImGui::Text("Bytes, Packets, Errors, Drops, FIFO, Collisions, Carrier, Compressed");
+                    ImGui::Spacing();
+                    renderTXTable();
+                    ImGui::EndTabItem();
+                }
+
+                ImGui::EndTabBar();
+            }
             ImGui::EndTabItem();
         }
 
-        // TX Statistics Tab
-        if (ImGui::BeginTabItem("TX Statistics"))
+        // Usage Visualization Tab (combines RX and TX usage bars)
+        if (ImGui::BeginTabItem("Usage Visualization"))
         {
-            renderTXTable();
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+            ImGui::Text("Visual representation of network usage (0 - 2GB scale)");
+            ImGui::PopStyleColor();
+            ImGui::Spacing();
+            
+            // Sub-tabs for RX and TX usage visualization
+            if (ImGui::BeginTabBar("UsageTabs", ImGuiTabBarFlags_Reorderable))
+            {
+                if (ImGui::BeginTabItem("RX Usage"))
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.9f, 0.7f, 1.0f));
+                    ImGui::Text("Received Data Usage");
+                    ImGui::PopStyleColor();
+                    ImGui::Text("Visual display of received bytes (automatically scaled: MB/GB)");
+                    ImGui::Spacing();
+                    renderRXUsageBars();
+                    ImGui::EndTabItem();
+                }
+
+                if (ImGui::BeginTabItem("TX Usage"))
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.7f, 0.7f, 1.0f));
+                    ImGui::Text("Transmitted Data Usage");
+                    ImGui::PopStyleColor();
+                    ImGui::Text("Visual display of transmitted bytes (automatically scaled: MB/GB)");
+                    ImGui::Spacing();
+                    renderTXUsageBars();
+                    ImGui::EndTabItem();
+                }
+
+                ImGui::EndTabBar();
+            }
             ImGui::EndTabItem();
         }
 
-        // RX Usage Visualization Tab
-        if (ImGui::BeginTabItem("RX Usage"))
+        // Real-time monitoring tab
+        if (ImGui::BeginTabItem("Real-time Monitor"))
         {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+            ImGui::Text("Live network activity monitoring");
+            ImGui::PopStyleColor();
+            ImGui::Spacing();
+            
+            // Combined real-time view
+            ImGui::Columns(2, "RealtimeColumns", true);
+            
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.9f, 0.7f, 1.0f));
+            ImGui::Text("RX Activity");
+            ImGui::PopStyleColor();
             renderRXUsageBars();
-            ImGui::EndTabItem();
-        }
-
-        // TX Usage Visualization Tab
-        if (ImGui::BeginTabItem("TX Usage"))
-        {
+            
+            ImGui::NextColumn();
+            
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.7f, 0.7f, 1.0f));
+            ImGui::Text("TX Activity");
+            ImGui::PopStyleColor();
             renderTXUsageBars();
+            
+            ImGui::Columns(1);
             ImGui::EndTabItem();
         }
 
