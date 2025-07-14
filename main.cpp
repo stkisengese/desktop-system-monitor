@@ -59,8 +59,10 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
         last_info_update = now;
     }
 
-    // Display system information
+    // Display system information 
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(100, 255, 100, 255)); // Light green for headers
     ImGui::Text("System Information");
+    ImGui::PopStyleColor();
     ImGui::Separator();
 
     ImGui::Text("OS: %s", sysInfo.os_name.c_str());
@@ -69,22 +71,26 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
     ImGui::Text("CPU: %s", sysInfo.cpu_model.c_str());
 
     ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(100, 255, 100, 255));
     ImGui::Text("Process Counts");
+    ImGui::PopStyleColor();
     ImGui::Separator();
     ImGui::Text("Tasks: %d total, %d Running, %d Sleeping, %d Zombie, %d Stopped",
-                sysInfo.total_processes, sysInfo.running_processes,
+    sysInfo.total_processes, sysInfo.running_processes,
                 sysInfo.sleeping_processes, sysInfo.zombie_processes,
                 sysInfo.stopped_processes);
 
     ImGui::Spacing();
     ImGui::Separator();
 
-    // Tabbed interface for performance monitoring
+    // Tabbed interface for performance monitoring 
     if (ImGui::BeginTabBar("PerformanceMonitor"))
     {
         static auto last_update = now;
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 150, 150, 255));
         if (ImGui::BeginTabItem("CPU")) // CPU Tab
         {
+            ImGui::PopStyleColor();
             // Update CPU data based on FPS setting
             auto now = chrono::steady_clock::now();
             auto elapsed = chrono::duration_cast<chrono::milliseconds>(now - last_update);
@@ -97,9 +103,16 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
             renderCPUGraph();
             ImGui::EndTabItem();
         }
+        else
+        {
+            ImGui::PopStyleColor();
+        }
 
+        // Fan Tab with color
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(150, 255, 150, 255));
         if (ImGui::BeginTabItem("Fan")) // Fan Tab
         {
+            ImGui::PopStyleColor();
             auto now = chrono::steady_clock::now();
             auto elapsed = chrono::duration_cast<chrono::milliseconds>(now - last_update);
             if (!fan_paused && elapsed.count() >= (1000.0f / fan_fps))
@@ -111,9 +124,16 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
             renderFanGraph();
             ImGui::EndTabItem();
         }
+        else
+        {
+            ImGui::PopStyleColor();
+        }
 
+        // Thermal Tab with color
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(150, 150, 255, 255));
         if (ImGui::BeginTabItem("Thermal")) // Thermal Tab
         {
+            ImGui::PopStyleColor();
             auto now = chrono::steady_clock::now();
             auto elapsed = chrono::duration_cast<chrono::milliseconds>(now - last_update);
             if (!thermal_paused && elapsed.count() >= (1000.0f / thermal_fps))
@@ -124,6 +144,10 @@ void systemWindow(const char *id, ImVec2 size, ImVec2 position)
 
             renderThermalGraph();
             ImGui::EndTabItem();
+        }
+        else
+        {
+            ImGui::PopStyleColor();
         }
 
         ImGui::EndTabBar();
